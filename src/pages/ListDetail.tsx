@@ -55,7 +55,7 @@ export default function ListDetail() {
   return (
     <Screen title={wishlist.title} backTo="/app" backLabel="Lists" largeTitle>
       {wishlist.description ? (
-        <p className="muted lead">{wishlist.description}</p>
+        <p className="muted lead lead-center">{wishlist.description}</p>
       ) : null}
 
       <div className="action-strip action-strip-center">

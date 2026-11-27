@@ -125,6 +125,7 @@ textarea {
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin: 0.35rem 0 0.15rem;
+  text-align: center;
 }
 
 .back-link {
@@ -651,6 +652,10 @@ textarea:focus {
 .lead {
   margin: 0;
   line-height: 1.45;
+}
+
+.lead-center {
+  text-align: center;
 }
 
 .lead-strong {

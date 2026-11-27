@@ -36,17 +36,14 @@ export default function ListsHome() {
   }
 
   return (
-    <Screen
-      title="Lists"
-      tabs
-      largeTitle
-      right={
-        <Link to="/app/new" className="text-action">
-          <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
+    <Screen title="Lists" tabs largeTitle>
+      <div className="action-strip action-strip-center">
+        <Link className="btn btn-small" to="/app/new">
+          <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
           New
         </Link>
-      }
-    >
+      </div>
+
       {error && <p className="error">{error}</p>}
       {loading ? (
         <p className="muted">Loading…</p>
