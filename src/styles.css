@@ -125,6 +125,7 @@ textarea {
   letter-spacing: -0.025em;
   line-height: 1.15;
   margin: 0.35rem 0 0.15rem;
+  text-align: center;
 }
 
 .back-link {
@@ -383,7 +384,7 @@ textarea:focus {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 16px;
-  overflow: hidden;
+  /* Keep overflow visible so absolute MoreMenu panels are not clipped. */
 }
 
 .nav-row {
@@ -403,9 +404,17 @@ textarea:focus {
   min-height: 3.5rem;
 }
 
+.nav-list > li:first-child .nav-row,
+.nav-list > .nav-row:first-child {
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
 .nav-list li:last-child .nav-row,
 .nav-list > .nav-row:last-child {
   border-bottom: none;
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
 }
 
 .nav-row:hover {
@@ -497,7 +506,7 @@ textarea:focus {
   position: absolute;
   top: calc(100% - 0.15rem);
   right: 0.15rem;
-  z-index: 30;
+  z-index: 40;
   min-width: 9.5rem;
   padding: 0.3rem;
   border-radius: 12px;
@@ -507,6 +516,23 @@ textarea:focus {
   display: grid;
   gap: 0.1rem;
   animation: rise 0.18s ease both;
+}
+
+.more-menu-panel.open-up {
+  top: auto;
+  bottom: calc(100% - 0.15rem);
+  animation: rise-up 0.18s ease both;
+}
+
+@keyframes rise-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .more-menu-item {
@@ -626,6 +652,10 @@ textarea:focus {
 .lead {
   margin: 0;
   line-height: 1.45;
+}
+
+.lead-center {
+  text-align: center;
 }
 
 .lead-strong {

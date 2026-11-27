@@ -1,5 +1,5 @@
 import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 
 export type MoreMenuProps = {
   "aria-label"?: string;
@@ -17,7 +17,9 @@ export default function MoreMenu({
   deleteLabel = "Delete",
 }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
+  const [openUp, setOpenUp] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   useEffect(() => {
@@ -41,6 +43,22 @@ export default function MoreMenu({
     };
   }, [open]);
 
+  useLayoutEffect(() => {
+    if (!open) {
+      setOpenUp(false);
+      return;
+    }
+    const trigger = rootRef.current;
+    const panel = panelRef.current;
+    if (!trigger || !panel) return;
+
+    const triggerRect = trigger.getBoundingClientRect();
+    const panelHeight = panel.offsetHeight;
+    const spaceBelow = window.innerHeight - triggerRect.bottom;
+    const spaceAbove = triggerRect.top;
+    setOpenUp(spaceBelow < panelHeight + 12 && spaceAbove > spaceBelow);
+  }, [open]);
+
   return (
     <div className="more-menu" ref={rootRef}>
       <button
@@ -59,7 +77,12 @@ export default function MoreMenu({
         <EllipsisVertical size={20} strokeWidth={2} aria-hidden="true" />
       </button>
       {open ? (
-        <div className="more-menu-panel" id={menuId} role="menu">
+        <div
+          className={`more-menu-panel${openUp ? " open-up" : ""}`}
+          id={menuId}
+          role="menu"
+          ref={panelRef}
+        >
           <button
             type="button"
             className="more-menu-item"
