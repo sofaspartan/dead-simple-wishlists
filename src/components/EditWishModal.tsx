@@ -1,5 +1,5 @@
-import { Save, Trash2, Undo2, X } from "lucide-react";
-import { FormEvent, useEffect, useId, useState } from "react";
+import { Save, Search as SearchIcon, Trash2, Undo2, X } from "lucide-react";
+import { FormEvent, useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { api, type Wishlist } from "../api";
 import { FormSkeleton } from "./Skeleton";
@@ -28,10 +28,12 @@ export default function EditWishModal({
   onDeleted,
 }: Props) {
   const titleId = useId();
+  const listsLabelId = useId();
   const [tab, setTab] = useState<Tab>("info");
   const [item, setItem] = useState(empty);
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [selectedListIds, setSelectedListIds] = useState<string[]>([]);
+  const [listQuery, setListQuery] = useState("");
   const [claimed, setClaimed] = useState(false);
   const [claimedBy, setClaimedBy] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -47,6 +49,7 @@ export default function EditWishModal({
     document.addEventListener("keydown", onKey);
 
     setTab("info");
+    setListQuery("");
     setError("");
     setBusy(false);
     setLoading(true);
@@ -77,6 +80,16 @@ export default function EditWishModal({
 
     return () => document.removeEventListener("keydown", onKey);
   }, [open, wishId, onClose]);
+
+  const filteredWishlists = useMemo(() => {
+    const q = listQuery.trim().toLowerCase();
+    if (!q) return wishlists;
+    return wishlists.filter(
+      (w) =>
+        w.title.toLowerCase().includes(q) ||
+        (w.description || "").toLowerCase().includes(q),
+    );
+  }, [wishlists, listQuery]);
 
   if (!open || !wishId || typeof document === "undefined") return null;
 
@@ -231,28 +244,54 @@ export default function EditWishModal({
                   </label>
                 </div>
               ) : (
-                <fieldset className="wish-list-fieldset">
-                  <legend>Wishlists</legend>
+                <div className="edit-picker">
+                  <p id={listsLabelId} className="edit-picker-label">
+                    Wishlists
+                  </p>
                   <p className="muted edit-modal-hint">
                     A wish can belong to multiple wishlists, or none (unlisted).
                   </p>
-                  {wishlists.length === 0 ? (
-                    <p className="muted edit-modal-hint">
-                      No wishlists yet — save to keep this wish unlisted.
-                    </p>
-                  ) : (
-                    wishlists.map((w) => (
-                      <label key={w.id} className="check-row">
-                        <input
-                          type="checkbox"
-                          checked={selectedListIds.includes(w.id)}
-                          onChange={() => toggleList(w.id)}
-                        />
-                        {w.title}
-                      </label>
-                    ))
-                  )}
-                </fieldset>
+                  {wishlists.length > 0 ? (
+                    <label className="search-field edit-picker-search">
+                      <span className="search-field-icon" aria-hidden="true">
+                        <SearchIcon size={20} strokeWidth={1.75} />
+                      </span>
+                      <input
+                        type="search"
+                        value={listQuery}
+                        onChange={(e) => setListQuery(e.target.value)}
+                        placeholder="Search wishlists"
+                        autoComplete="off"
+                        enterKeyHint="search"
+                        aria-label="Search wishlists"
+                      />
+                    </label>
+                  ) : null}
+                  <div
+                    className="wish-list-fieldset"
+                    role="group"
+                    aria-labelledby={listsLabelId}
+                  >
+                    {wishlists.length === 0 ? (
+                      <p className="muted edit-modal-hint">
+                        No wishlists yet — save to keep this wish unlisted.
+                      </p>
+                    ) : filteredWishlists.length === 0 ? (
+                      <p className="muted edit-modal-hint">No matches</p>
+                    ) : (
+                      filteredWishlists.map((w) => (
+                        <label key={w.id} className="check-row">
+                          <input
+                            type="checkbox"
+                            checked={selectedListIds.includes(w.id)}
+                            onChange={() => toggleList(w.id)}
+                          />
+                          {w.title}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
 
               {error ? <p className="error">{error}</p> : null}

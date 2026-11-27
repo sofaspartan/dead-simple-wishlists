@@ -1,5 +1,5 @@
-import { Save, Trash2, X } from "lucide-react";
-import { FormEvent, useEffect, useId, useState } from "react";
+import { Save, Search as SearchIcon, Trash2, X } from "lucide-react";
+import { FormEvent, useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { api, type WishlistItem } from "../api";
 import { FormSkeleton } from "./Skeleton";
@@ -26,12 +26,14 @@ export default function EditWishlistModal({
   onDeleted,
 }: Props) {
   const titleId = useId();
+  const wishesLabelId = useId();
   const [tab, setTab] = useState<Tab>("info");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [allWishes, setAllWishes] = useState<WishlistItem[]>([]);
   const [selectedWishIds, setSelectedWishIds] = useState<string[]>([]);
   const [initialWishIds, setInitialWishIds] = useState<string[]>([]);
+  const [wishQuery, setWishQuery] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -45,6 +47,7 @@ export default function EditWishlistModal({
     document.addEventListener("keydown", onKey);
 
     setTab("info");
+    setWishQuery("");
     setError("");
     setBusy(false);
     setLoading(true);
@@ -81,6 +84,17 @@ export default function EditWishlistModal({
 
     return () => document.removeEventListener("keydown", onKey);
   }, [open, wishlistId, onClose]);
+
+  const filteredWishes = useMemo(() => {
+    const q = wishQuery.trim().toLowerCase();
+    if (!q) return allWishes;
+    return allWishes.filter(
+      (w) =>
+        w.name.toLowerCase().includes(q) ||
+        (w.notes || "").toLowerCase().includes(q) ||
+        (w.url || "").toLowerCase().includes(q),
+    );
+  }, [allWishes, wishQuery]);
 
   if (!open || !wishlistId || typeof document === "undefined") return null;
 
@@ -208,27 +222,53 @@ export default function EditWishlistModal({
                   </label>
                 </div>
               ) : (
-                <fieldset className="wish-list-fieldset">
-                  <legend>Wishes on this list</legend>
+                <div className="edit-picker">
+                  <p id={wishesLabelId} className="edit-picker-label">
+                    Wishes on this list
+                  </p>
                   <p className="muted edit-modal-hint">
                     Choose which wishes belong to this wishlist. Unchecked wishes stay in your
                     library (unlisted if on no lists).
                   </p>
-                  {allWishes.length === 0 ? (
-                    <p className="muted edit-modal-hint">No wishes yet — add one from Home.</p>
-                  ) : (
-                    allWishes.map((w) => (
-                      <label key={w.id} className="check-row">
-                        <input
-                          type="checkbox"
-                          checked={selectedWishIds.includes(w.id)}
-                          onChange={() => toggleWish(w.id)}
-                        />
-                        {w.name}
-                      </label>
-                    ))
-                  )}
-                </fieldset>
+                  {allWishes.length > 0 ? (
+                    <label className="search-field edit-picker-search">
+                      <span className="search-field-icon" aria-hidden="true">
+                        <SearchIcon size={20} strokeWidth={1.75} />
+                      </span>
+                      <input
+                        type="search"
+                        value={wishQuery}
+                        onChange={(e) => setWishQuery(e.target.value)}
+                        placeholder="Search wishes"
+                        autoComplete="off"
+                        enterKeyHint="search"
+                        aria-label="Search wishes"
+                      />
+                    </label>
+                  ) : null}
+                  <div
+                    className="wish-list-fieldset"
+                    role="group"
+                    aria-labelledby={wishesLabelId}
+                  >
+                    {allWishes.length === 0 ? (
+                      <p className="muted edit-modal-hint">No wishes yet — add one from Home.</p>
+                    ) : filteredWishes.length === 0 ? (
+                      <p className="muted edit-modal-hint">No matches</p>
+                    ) : (
+                      filteredWishes.map((w) => (
+                        <label key={w.id} className="check-row">
+                          <input
+                            type="checkbox"
+                            checked={selectedWishIds.includes(w.id)}
+                            onChange={() => toggleWish(w.id)}
+                          />
+                          {w.name}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
 
               {error ? <p className="error">{error}</p> : null}

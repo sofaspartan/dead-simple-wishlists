@@ -133,19 +133,21 @@ export default function ItemForm() {
         </div>
 
         {createMode === "lists" ? (
-          <fieldset className="wish-list-fieldset">
-            <legend>Wishlists</legend>
-            {wishlists.map((w) => (
-              <label key={w.id} className="check-row">
-                <input
-                  type="checkbox"
-                  checked={selectedListIds.includes(w.id)}
-                  onChange={() => toggleList(w.id)}
-                />
-                {w.title}
-              </label>
-            ))}
-          </fieldset>
+          <div className="edit-picker">
+            <p className="edit-picker-label">Wishlists</p>
+            <div className="wish-list-fieldset" role="group" aria-label="Wishlists">
+              {wishlists.map((w) => (
+                <label key={w.id} className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={selectedListIds.includes(w.id)}
+                    onChange={() => toggleList(w.id)}
+                  />
+                  {w.title}
+                </label>
+              ))}
+            </div>
+          </div>
         ) : null}
 
         {createMode === "new" ? (
