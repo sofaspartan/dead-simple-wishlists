@@ -1,3 +1,4 @@
+import { Save, Trash2 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
@@ -70,10 +71,12 @@ export default function ListEdit() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy}>
+          <Save size={18} strokeWidth={2} aria-hidden="true" />
           {busy ? "Saving…" : "Save"}
         </button>
       </form>
       <button className="btn btn-danger btn-block" type="button" onClick={() => void onDelete()}>
+        <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
         Delete list
       </button>
     </Screen>

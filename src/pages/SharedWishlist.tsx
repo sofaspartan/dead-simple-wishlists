@@ -1,3 +1,4 @@
+import { ChevronLeft, Gift, Home } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
@@ -54,7 +55,7 @@ export default function SharedWishlist() {
             <div className="top-bar-side">
               <button type="button" className="back-link" onClick={() => setClaiming(null)}>
                 <span className="back-chevron" aria-hidden="true">
-                  ‹
+                  <ChevronLeft size={22} strokeWidth={2} />
                 </span>
                 {wishlist?.title || "List"}
               </button>
@@ -93,6 +94,7 @@ export default function SharedWishlist() {
               type="submit"
               disabled={busy || (!anonymous && !claimerName.trim())}
             >
+              <Gift size={18} strokeWidth={2} aria-hidden="true" />
               {busy ? "Claiming…" : "Confirm claim"}
             </button>
           </form>
@@ -111,7 +113,10 @@ export default function SharedWishlist() {
           <>
             <h1 className="screen-title">Not found</h1>
             <p className="muted">{error || "This share link may be invalid."}</p>
-            <Link to="/">Go home</Link>
+            <Link className="btn btn-ghost" to="/">
+              <Home size={18} strokeWidth={2} aria-hidden="true" />
+              Go home
+            </Link>
           </>
         ) : (
           <>
@@ -157,6 +162,7 @@ export default function SharedWishlist() {
                         type="button"
                         onClick={() => setClaiming(it)}
                       >
+                        <Gift size={15} strokeWidth={2} aria-hidden="true" />
                         Claim
                       </button>
                     ) : (

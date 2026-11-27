@@ -1,3 +1,4 @@
+import { ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Props = {
@@ -21,8 +22,8 @@ export default function TopBar({
         <div className="top-bar-side">
           {backTo ? (
             <Link to={backTo} className="back-link">
-              <span aria-hidden="true" className="back-chevron">
-                ‹
+              <span className="back-chevron" aria-hidden="true">
+                <ChevronLeft size={22} strokeWidth={2} />
               </span>
               {backLabel}
             </Link>

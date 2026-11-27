@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
@@ -47,6 +48,7 @@ export default function ListCreate() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy || !title.trim()}>
+          <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
           {busy ? "Creating…" : "Create list"}
         </button>
       </form>

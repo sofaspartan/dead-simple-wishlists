@@ -1,3 +1,4 @@
+import { Check, Copy, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
@@ -54,9 +55,20 @@ export default function ListShare() {
           setTimeout(() => setCopied(false), 1500);
         }}
       >
-        {copied ? "Copied" : "Copy link"}
+        {copied ? (
+          <>
+            <Check size={18} strokeWidth={2.25} aria-hidden="true" />
+            Copied
+          </>
+        ) : (
+          <>
+            <Copy size={18} strokeWidth={2} aria-hidden="true" />
+            Copy link
+          </>
+        )}
       </button>
       <Link className="btn btn-ghost btn-block" to={`/w/${slug}`} target="_blank">
+        <ExternalLink size={18} strokeWidth={2} aria-hidden="true" />
         Open public page
       </Link>
     </Screen>
