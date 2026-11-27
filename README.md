@@ -49,7 +49,8 @@ Repo config is already set in `netlify.toml`:
 | Build command | `npm run build` |
 | Publish directory | `dist` |
 | Functions | `netlify/functions` |
-| SPA + API | `public/_redirects`: `/api/*` → Functions, then `/*` → `index.html` |
+| API proxy | `public/_redirects` + `netlify.toml`: `/api/*` → Functions |
+| SPA fallback | Appended to `dist/_redirects` at build time (keeps `netlify dev` clean) |
 
 ### If `https://dead-simple-wishlists.netlify.app/` shows “Page not found”
 
