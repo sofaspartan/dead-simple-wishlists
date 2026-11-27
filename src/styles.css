@@ -669,7 +669,15 @@ select.select-field:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
+  color: #fff;
+  opacity: 1;
+}
+
+.media-card-placeholder svg {
+  color: #fff;
+  stroke: #fff;
+  opacity: 1;
+  fill: none;
 }
 
 .media-card-menu {
@@ -681,10 +689,17 @@ select.select-field:focus-visible {
 
 .media-card-menu .more-menu-trigger {
   background: rgba(0, 0, 0, 0.45);
-  color: var(--ink);
+  color: #fff;
   border-radius: 14px;
   width: 3rem;
   height: 3rem;
+  opacity: 1;
+}
+
+.media-card-menu .more-menu-trigger svg {
+  color: #fff;
+  stroke: #fff;
+  opacity: 1;
 }
 
 .media-card-menu .more-menu-trigger:hover,
@@ -961,9 +976,11 @@ select.select-field:focus-visible {
 
 .account-profile-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
   gap: 1rem;
-  padding: 1.15rem 1.2rem;
+  padding: 1.35rem 1.2rem 1.25rem;
   border-radius: 16px;
   background: var(--surface);
 }
@@ -997,6 +1014,78 @@ select.select-field:focus-visible {
 
 .account-profile-text {
   min-width: 0;
+  width: 100%;
+  display: grid;
+  gap: 0.2rem;
+  justify-items: center;
+}
+
+.account-name-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: 100%;
+}
+
+.account-display-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.account-name-edit-btn {
+  appearance: none;
+  border: 0;
+  background: var(--surface-press);
+  color: var(--ink);
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.account-name-edit-btn:hover {
+  background: var(--surface-raised);
+}
+
+.account-name-edit {
+  display: grid;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 18rem;
+  justify-items: stretch;
+}
+
+.account-name-edit input {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.account-name-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.account-handle {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+  color: var(--muted);
 }
 
 .account-name {
@@ -1005,6 +1094,18 @@ select.select-field:focus-visible {
   font-weight: 700;
   letter-spacing: -0.02em;
   margin: 0 0 0.25rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* —— Avatars —— */

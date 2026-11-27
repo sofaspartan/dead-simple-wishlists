@@ -59,6 +59,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   me: () => request<{ user: User }>("/auth/me"),
+  updateDisplayName: (displayName: string) =>
+    request<{ user: User }>("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ displayName }),
+    }),
   signup: (username: string, password: string) =>
     request<{ user: User; recoveryCodes: string[] }>("/auth/signup", {
       method: "POST",

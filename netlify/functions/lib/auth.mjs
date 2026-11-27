@@ -259,6 +259,32 @@ export async function clearUserAvatar(userId) {
   return publicUser(user);
 }
 
+const MAX_DISPLAY_NAME_LEN = 64;
+
+export async function updateDisplayName(userId, displayName) {
+  const users = usersStore();
+  const user = await getRawUserById(userId);
+  if (!user) {
+    const err = new Error("Not signed in");
+    err.status = 401;
+    throw err;
+  }
+  const name = String(displayName ?? "").trim();
+  if (!name) {
+    const err = new Error("Display name is required");
+    err.status = 400;
+    throw err;
+  }
+  if (name.length > MAX_DISPLAY_NAME_LEN) {
+    const err = new Error(`Display name must be ${MAX_DISPLAY_NAME_LEN} characters or fewer`);
+    err.status = 400;
+    throw err;
+  }
+  user.displayName = name;
+  await users.setJSON(user.username, user);
+  return publicUser(user);
+}
+
 export async function getAvatarRecord(userId) {
   const user = await getRawUserById(userId);
   if (!user?.hasAvatar) return null;
