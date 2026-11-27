@@ -11,8 +11,7 @@ type Props = {
 
 const iconProps = {
   size: 22,
-  strokeWidth: 1.75,
-  fill: "currentColor",
+  strokeWidth: 2,
   "aria-hidden": true as const,
 };
 
@@ -64,15 +63,11 @@ export default function AddSheet({ open, onClose, listId }: Props) {
         </h2>
         <div className="add-sheet-actions">
           <button type="button" className="add-sheet-action" onClick={() => go(addWishPath)}>
-            <span className="add-sheet-action-icon">
-              <Gift {...iconProps} />
-            </span>
+            <Gift {...iconProps} />
             Add wish
           </button>
           <button type="button" className="add-sheet-action" onClick={() => go("/app/new")}>
-            <span className="add-sheet-action-icon">
-              <ListPlus {...iconProps} />
-            </span>
+            <ListPlus {...iconProps} />
             Add wishlist
           </button>
         </div>
