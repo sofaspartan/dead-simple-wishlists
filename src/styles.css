@@ -915,10 +915,8 @@ select.select-field:focus-visible {
 }
 
 .more-menu-panel {
-  position: absolute;
-  top: calc(100% - 0.1rem);
-  right: 0;
-  z-index: 40;
+  position: fixed;
+  z-index: 45;
   min-width: 13.5rem;
   padding: 0.45rem;
   border-radius: 16px;
@@ -930,8 +928,6 @@ select.select-field:focus-visible {
 }
 
 .more-menu-panel.open-up {
-  top: auto;
-  bottom: calc(100% - 0.1rem);
   animation: rise-up 0.18s ease both;
 }
 
