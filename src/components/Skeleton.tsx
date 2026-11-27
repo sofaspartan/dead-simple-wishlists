@@ -78,14 +78,55 @@ export function AccountSkeleton({ label = "Loading" }: { label?: string }) {
   );
 }
 
-/** Wishlist detail: action strip + card grid. */
-export function DetailSkeleton({ label = "Loading" }: { label?: string }) {
+/** Mirrors WishlistHeaderCard: date, actions, title, avatar, handle. */
+export function WishlistHeaderSkeleton() {
+  return (
+    <div className="wishlist-header-card skeleton-wishlist-header" aria-hidden="true">
+      <div className="wishlist-header-top">
+        <Bone className="skeleton-header-date" />
+        <div className="wishlist-header-actions">
+          <Bone className="skeleton-header-action" />
+          <Bone className="skeleton-header-action" />
+        </div>
+      </div>
+      <Bone className="skeleton-header-title" />
+      <div className="wishlist-header-owner">
+        <Bone className="skeleton-avatar skeleton-header-avatar" />
+        <Bone className="skeleton-line skeleton-line-meta skeleton-header-handle" />
+      </div>
+    </div>
+  );
+}
+
+/** Full-screen wish detail placeholder. */
+export function WishDetailSkeleton({ label = "Loading wish" }: { label?: string }) {
+  return (
+    <div className="skeleton-wish-detail" aria-busy="true" aria-label={label}>
+      <Bone className="skeleton-wish-hero" />
+      <div className="skeleton-wish-body" aria-hidden="true">
+        <Bone className="skeleton-line skeleton-line-title skeleton-wish-title" />
+        <Bone className="skeleton-line skeleton-line-meta" />
+        <Bone className="skeleton-line skeleton-line-lead" />
+      </div>
+    </div>
+  );
+}
+
+/** Wishlist detail: header card + card grid. */
+export function DetailSkeleton({
+  label = "Loading",
+  variant = "wishlist",
+}: {
+  label?: string;
+  variant?: "wishlist" | "wish";
+}) {
+  if (variant === "wish") {
+    return <WishDetailSkeleton label={label} />;
+  }
+
   return (
     <div className="skeleton-detail" aria-busy="true" aria-label={label}>
-      <Bone className="skeleton-line skeleton-line-lead centered" />
-      <div className="skeleton-action-strip" aria-hidden="true">
-        <Bone className="skeleton-chip" />
-      </div>
+      <WishlistHeaderSkeleton />
       <ul className="card-grid skeleton-grid" aria-hidden="true">
         {Array.from({ length: 4 }, (_, i) => (
           <li key={i}>

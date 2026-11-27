@@ -5,6 +5,7 @@ import {
   AppBootSkeleton,
   DetailSkeleton,
   FormSkeleton,
+  WishDetailSkeleton,
 } from "./components/Skeleton";
 import Screen from "./components/Screen";
 import Account from "./pages/Account";
@@ -19,6 +20,7 @@ import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
 import SharedWishlist from "./pages/SharedWishlist";
 import Signup from "./pages/Signup";
+import WishDetail from "./pages/WishDetail";
 
 function ProtectedBootSkeleton() {
   const { pathname } = useLocation();
@@ -35,6 +37,14 @@ function ProtectedBootSkeleton() {
     return (
       <Screen title="Wishlist" backTo="/app" backLabel="Home" tabs largeTitle={false}>
         <DetailSkeleton label="Loading wishlist" />
+      </Screen>
+    );
+  }
+
+  if (/^\/app\/wishes\/[^/]+$/.test(pathname) && !pathname.endsWith("/new")) {
+    return (
+      <Screen backTo="/app" backLabel="Back" tabs largeTitle={false}>
+        <WishDetailSkeleton label="Loading wish" />
       </Screen>
     );
   }
@@ -130,10 +140,18 @@ export default function App() {
         }
       />
       <Route
-        path="/app/wishes/:itemId"
+        path="/app/wishes/:itemId/edit"
         element={
           <Protected>
             <ItemForm />
+          </Protected>
+        }
+      />
+      <Route
+        path="/app/wishes/:itemId"
+        element={
+          <Protected>
+            <WishDetail />
           </Protected>
         }
       />
@@ -146,10 +164,18 @@ export default function App() {
         }
       />
       <Route
-        path="/app/lists/:id/items/:itemId"
+        path="/app/lists/:id/items/:itemId/edit"
         element={
           <Protected>
             <ItemForm />
+          </Protected>
+        }
+      />
+      <Route
+        path="/app/lists/:id/items/:itemId"
+        element={
+          <Protected>
+            <WishDetail />
           </Protected>
         }
       />

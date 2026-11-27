@@ -103,7 +103,7 @@ export default function ListDetail() {
         {wishlist.items.map((it) => (
           <li key={it.id}>
             <MediaCard
-              to={`/app/lists/${id}/items/${it.id}`}
+              to={`/app/wishes/${it.id}?list=${encodeURIComponent(id)}`}
               title={it.name}
               variant="item"
               meta={
@@ -115,7 +115,7 @@ export default function ListDetail() {
                 "aria-label": `Actions for ${it.name}`,
                 editLabel: "Edit wish",
                 deleteLabel: "Delete wish",
-                onEdit: () => navigate(`/app/lists/${id}/items/${it.id}`),
+                onEdit: () => navigate(`/app/wishes/${it.id}/edit`),
                 onDelete: () => void onDeleteItem(it.id, it.name),
               }}
             />

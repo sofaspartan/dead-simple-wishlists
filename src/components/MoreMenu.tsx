@@ -1,11 +1,15 @@
-import { Ellipsis, Heart, Pencil, Trash2 } from "lucide-react";
+import { Ellipsis, Heart, Pencil, Trash2, type LucideIcon } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-export type MoreMenuExtra = {
+export type MoreMenuAction = {
   label: string;
   onSelect: () => void;
+  icon?: LucideIcon;
+  danger?: boolean;
 };
+
+export type MoreMenuExtra = MoreMenuAction;
 
 export type MoreMenuProps = {
   "aria-label"?: string;
@@ -13,8 +17,10 @@ export type MoreMenuProps = {
   onDelete: () => void;
   editLabel?: string;
   deleteLabel?: string;
-  /** Optional third action (e.g. Favorite) */
-  extra?: MoreMenuExtra;
+  /** Optional third action (e.g. Favorite) — prefer `extras` for multiple */
+  extra?: MoreMenuAction;
+  /** Actions between Edit and Delete */
+  extras?: MoreMenuAction[];
 };
 
 const iconProps = {
@@ -34,11 +40,14 @@ export default function MoreMenu({
   editLabel = "Edit",
   deleteLabel = "Delete",
   extra,
+  extras,
 }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+
+  const middleActions = extras?.length ? extras : extra ? [extra] : [];
 
   useEffect(() => {
     if (!open) return;
@@ -92,22 +101,26 @@ export default function MoreMenu({
                 <Pencil {...iconProps} />
                 {editLabel}
               </button>
-              {extra ? (
-                <button
-                  type="button"
-                  className="more-menu-item"
-                  role="menuitem"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    close();
-                    extra.onSelect();
-                  }}
-                >
-                  <Heart {...iconProps} />
-                  {extra.label}
-                </button>
-              ) : null}
+              {middleActions.map((action) => {
+                const Icon = action.icon || Heart;
+                return (
+                  <button
+                    key={action.label}
+                    type="button"
+                    className={`more-menu-item${action.danger ? " more-menu-item-danger" : ""}`}
+                    role="menuitem"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      close();
+                      action.onSelect();
+                    }}
+                  >
+                    <Icon {...iconProps} />
+                    {action.label}
+                  </button>
+                );
+              })}
               <button
                 type="button"
                 className="more-menu-item more-menu-item-danger"

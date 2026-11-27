@@ -34,10 +34,14 @@ export default function ItemForm() {
   const [busy, setBusy] = useState(false);
 
   const backTo = useMemo(() => {
+    if (!isNew && itemId) {
+      const qs = routeListId ? `?list=${encodeURIComponent(routeListId)}` : "";
+      return `/app/wishes/${itemId}${qs}`;
+    }
     if (routeListId) return `/app/lists/${routeListId}`;
     if (prefListId) return `/app/lists/${prefListId}`;
     return "/app";
-  }, [routeListId, prefListId]);
+  }, [isNew, itemId, routeListId, prefListId]);
 
   useEffect(() => {
     void (async () => {
@@ -118,11 +122,10 @@ export default function ItemForm() {
         }
       } else if (itemId) {
         await api.updateWish(itemId, { ...item, wishlistIds: selectedListIds });
-        if (routeListId) {
-          navigate(`/app/lists/${routeListId}`, { replace: true });
-        } else {
-          navigate("/app", { replace: true });
-        }
+        navigate(`/app/wishes/${itemId}`, {
+          replace: true,
+          state: routeListId ? { backTo: `/app/lists/${routeListId}` } : undefined,
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -134,7 +137,12 @@ export default function ItemForm() {
     if (!itemId || isNew) return;
     if (!confirm("Delete this wish?")) return;
     await api.deleteWish(itemId);
-    navigate(backTo, { replace: true });
+    const afterDelete = routeListId
+      ? `/app/lists/${routeListId}`
+      : prefListId
+        ? `/app/lists/${prefListId}`
+        : "/app";
+    navigate(afterDelete, { replace: true });
   }
 
   async function onUnclaim() {
@@ -177,37 +185,36 @@ export default function ItemForm() {
       <form className="form-grid" onSubmit={onSubmit}>
         {isNew ? (
           <>
-            <fieldset className="wish-list-fieldset">
-              <legend>Add to</legend>
-              <label className="check-row">
-                <input
-                  type="radio"
-                  name="create-mode"
-                  checked={createMode === "unlisted"}
-                  onChange={() => setCreateMode("unlisted")}
-                />
-                Unlisted (no wishlist)
-              </label>
-              <label className="check-row">
-                <input
-                  type="radio"
-                  name="create-mode"
-                  checked={createMode === "lists"}
-                  onChange={() => setCreateMode("lists")}
-                  disabled={wishlists.length === 0}
-                />
-                Existing wishlist(s)
-              </label>
-              <label className="check-row">
-                <input
-                  type="radio"
-                  name="create-mode"
-                  checked={createMode === "new"}
-                  onChange={() => setCreateMode("new")}
-                />
-                New wishlist…
-              </label>
-            </fieldset>
+            <div className="create-mode-tabs" role="tablist" aria-label="Add to">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={createMode === "unlisted"}
+                className={`create-mode-tab${createMode === "unlisted" ? " active" : ""}`}
+                onClick={() => setCreateMode("unlisted")}
+              >
+                Unlisted
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={createMode === "lists"}
+                className={`create-mode-tab${createMode === "lists" ? " active" : ""}`}
+                onClick={() => setCreateMode("lists")}
+                disabled={wishlists.length === 0}
+              >
+                Wishlist
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={createMode === "new"}
+                className={`create-mode-tab${createMode === "new" ? " active" : ""}`}
+                onClick={() => setCreateMode("new")}
+              >
+                New list
+              </button>
+            </div>
 
             {createMode === "lists" ? (
               <fieldset className="wish-list-fieldset">
