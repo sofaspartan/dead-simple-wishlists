@@ -51,7 +51,7 @@ export default function Favorites() {
             <Heart size={36} strokeWidth={1.5} />
           </span>
           <p className="empty-title">No favorites yet</p>
-          <p className="muted">Star a wishlist from its ⋮ menu to find it here.</p>
+          <p className="muted">Star a wishlist from its ⋯ menu to find it here.</p>
           <Link className="btn" to="/app">
             Browse wishlists
           </Link>

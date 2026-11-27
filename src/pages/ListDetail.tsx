@@ -2,6 +2,7 @@ import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import AddCard from "../components/AddCard";
 import MediaCard from "../components/MediaCard";
 import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
@@ -67,6 +68,7 @@ export default function ListDetail() {
 
   void favTick;
   const favorited = isFavorite(id);
+  const addWishPath = `/app/wishes/new?wishlist=${encodeURIComponent(id)}`;
 
   return (
     <Screen
@@ -103,37 +105,30 @@ export default function ListDetail() {
 
       {error && <p className="error">{error}</p>}
 
-      {wishlist.items.length === 0 ? (
-        <div className="empty-state">
-          <p className="empty-title">No wishes</p>
-          <p className="muted">Tap + below to add a wish.</p>
-          <Link className="btn" to={`/app/wishes/new?wishlist=${encodeURIComponent(id)}`}>
-            Add first wish
-          </Link>
-        </div>
-      ) : (
-        <ul className="card-grid">
-          {wishlist.items.map((it) => (
-            <li key={it.id}>
-              <MediaCard
-                to={`/app/lists/${id}/items/${it.id}`}
-                title={it.name}
-                variant="item"
-                meta={
-                  [it.price, it.claimed ? `Claimed · ${it.claimedBy || "Anonymous"}` : null]
-                    .filter(Boolean)
-                    .join(" · ") || undefined
-                }
-                menu={{
-                  "aria-label": `Actions for ${it.name}`,
-                  onEdit: () => navigate(`/app/lists/${id}/items/${it.id}`),
-                  onDelete: () => void onDeleteItem(it.id, it.name),
-                }}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="card-grid">
+        {wishlist.items.map((it) => (
+          <li key={it.id}>
+            <MediaCard
+              to={`/app/lists/${id}/items/${it.id}`}
+              title={it.name}
+              variant="item"
+              meta={
+                [it.price, it.claimed ? `Claimed · ${it.claimedBy || "Anonymous"}` : null]
+                  .filter(Boolean)
+                  .join(" · ") || undefined
+              }
+              menu={{
+                "aria-label": `Actions for ${it.name}`,
+                onEdit: () => navigate(`/app/lists/${id}/items/${it.id}`),
+                onDelete: () => void onDeleteItem(it.id, it.name),
+              }}
+            />
+          </li>
+        ))}
+        <li>
+          <AddCard to={addWishPath} label="Add wish" />
+        </li>
+      </ul>
     </Screen>
   );
 }

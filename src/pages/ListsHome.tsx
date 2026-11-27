@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import AddCard from "../components/AddCard";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
 import { isFavorite, toggleFavorite } from "../lib/favorites";
@@ -41,14 +42,6 @@ export default function ListsHome() {
       {error && <p className="error">{error}</p>}
       {loading ? (
         <p className="muted">Loading…</p>
-      ) : wishlists.length === 0 ? (
-        <div className="empty-state">
-          <p className="empty-title">No wishlists yet</p>
-          <p className="muted">Tap + below to create a wishlist or add a wish.</p>
-          <Link className="btn" to="/app/new">
-            Create a wishlist
-          </Link>
-        </div>
       ) : (
         <ul className="card-grid">
           {wishlists.map((w) => {
@@ -87,6 +80,9 @@ export default function ListsHome() {
               </li>
             );
           })}
+          <li>
+            <AddCard to="/app/new" label="Add wishlist" />
+          </li>
         </ul>
       )}
     </Screen>
