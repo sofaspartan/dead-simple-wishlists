@@ -1,4 +1,4 @@
-import { connectLambda, getStore } from "@netlify/blobs";
+import { connectLambda, getStore, setEnvironmentContext } from "@netlify/blobs";
 import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
@@ -10,16 +10,44 @@ const LOCAL_DIR = join(
   "blobs"
 );
 
+let useStrong = false;
+
 /**
- * Lambda compatibility mode requires connectLambda(event) before getStore.
- * Call on every request (idempotent enough for our purposes).
+ * Configure Blobs from the Lambda event every request.
+ * Prefer full context (including uncachedEdgeURL when present) so reads can
+ * be strongly consistent. Fall back to connectLambda + eventual retries.
  */
 export function initBlobsFromEvent(event) {
   if (!event?.blobs) return;
   try {
-    connectLambda(event);
+    const data = JSON.parse(Buffer.from(event.blobs, "base64").toString("utf8"));
+    const headers = event.headers || {};
+    const siteID = headers["x-nf-site-id"] || headers["X-Nf-Site-Id"];
+    const deployID = headers["x-nf-deploy-id"] || headers["X-Nf-Deploy-Id"];
+    const uncachedEdgeURL =
+      data.uncached_edge_url ||
+      data.uncachedEdgeURL ||
+      data.uncached_url ||
+      data.uncachedURL ||
+      null;
+
+    setEnvironmentContext({
+      siteID,
+      deployID,
+      token: data.token,
+      edgeURL: data.url,
+      uncachedEdgeURL: uncachedEdgeURL || undefined,
+      primaryRegion: data.primary_region || data.primaryRegion,
+      apiURL: data.api_url || data.apiURL,
+    });
+    useStrong = Boolean(uncachedEdgeURL);
   } catch {
-    // Local smoke without a real Lambda blobs payload
+    try {
+      connectLambda(event);
+      useStrong = false;
+    } catch {
+      // Local smoke without a real Lambda blobs payload
+    }
   }
 }
 
@@ -79,15 +107,26 @@ function localStore(name) {
   };
 }
 
+async function readOnce(store, key, type) {
+  try {
+    return await store.get(key, {
+      type,
+      ...(useStrong ? { consistency: "strong" } : {}),
+    });
+  } catch {
+    // Strong may throw without uncachedEdgeURL — fall back to eventual.
+    return store.get(key, { type });
+  }
+}
+
 /**
- * Eventual Blobs can take several seconds to become visible across isolates.
- * Keep retrying long enough that signup → /me and login work without a
- * client-side wait (strong consistency needs uncachedEdgeURL we don't have).
+ * Eventual Blobs can take several seconds across isolates. Retry long enough
+ * that signup → /me and login work without a client-side wait.
  */
 async function getWithRetry(store, key, type = "json", attempts = 16) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
-    last = await store.get(key, { type });
+    last = await readOnce(store, key, type);
     if (last != null) return last;
     if (i < attempts - 1) {
       await new Promise((r) => setTimeout(r, 250));
@@ -104,7 +143,7 @@ function netlifyStore(name) {
       const type = opts.type || "json";
       // retry:false for existence probes that expect a miss
       if (opts.retry === false) {
-        return s.get(key, { type });
+        return readOnce(s, key, type);
       }
       return getWithRetry(s, key, type);
     },
@@ -142,12 +181,16 @@ export function storageBackend() {
   }
 }
 
+export function blobsUsesStrong() {
+  return useStrong;
+}
+
 /** Write+read probe used by /api/health to verify persistence. */
 export async function blobsRoundtrip() {
   const probe = store("health");
   const key = `ping_${Date.now()}`;
   await probe.setJSON(key, { ok: true });
-  const read = await probe.get(key, { retry: true });
+  const read = await probe.get(key);
   try {
     await probe.delete(key);
   } catch {
