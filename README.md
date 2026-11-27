@@ -42,11 +42,47 @@ Smoke-check storage mode: `GET /api/health` → `{ "blobs": "netlify" | "local-f
 
 ## Deploy on Netlify
 
-1. Connect this repo to Netlify (build: `npm run build`, publish: `dist`, functions: `netlify/functions` — already in `netlify.toml`).
-2. Site settings → Environment variables:
-   - `SESSION_SECRET` — long random string (required in production)
-3. Deploy. Blobs are available automatically on Netlify; no extra Blobs setup for the default store API.
-4. Optional: enable HTTPS-only / secure cookies are set when `CONTEXT=production`.
+Repo config is already set in `netlify.toml`:
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build` |
+| Publish directory | `dist` |
+| Functions | `netlify/functions` |
+| SPA fallback | `public/_redirects` → `/* /index.html 200` |
+
+### If `https://dead-simple-wishlists.netlify.app/` shows “Page not found”
+
+That Netlify hostname exists but has **no successful publish of this app**. Merging to `main` alone does nothing until the site is **linked to this GitHub repo** (or you deploy manually). There were no Netlify check-runs on the merge commit, which usually means the site is not connected.
+
+**Fix (dashboard — recommended):**
+
+1. Open [Netlify](https://app.netlify.com/) → find or create the site with subdomain `dead-simple-wishlists`.
+2. **Site configuration → Build & deploy → Continuous deployment → Link repository** → `sofaspartan/dead-simple-wishlists`, branch `main`.
+3. Confirm build settings match the table above (Netlify should read `netlify.toml`).
+4. **Site configuration → Environment variables** → add:
+   - `SESSION_SECRET` = a long random string (required in production; sessions are weak/predictable without it)
+5. **Deploys → Trigger deploy → Deploy site** (or push any commit to `main`).
+6. When the deploy is “Published”, verify:
+   - `https://dead-simple-wishlists.netlify.app/` shows **Wish**
+   - `https://dead-simple-wishlists.netlify.app/api/health` returns JSON
+
+**Fix (CLI — if you have a Netlify personal access token):**
+
+```bash
+# one-time
+netlify login
+# or: export NETLIFY_AUTH_TOKEN=...
+
+npm run build
+netlify link          # pick the dead-simple-wishlists site
+netlify env:set SESSION_SECRET "$(openssl rand -hex 32)"
+netlify deploy --prod --build
+```
+
+Agents in this environment are **not** logged into Netlify (`netlify status` → Not logged in), so production publish must be done from your Netlify account.
+
+Blobs work automatically on a real Netlify deploy; no extra Blobs product setup for the default store API. Secure cookies are set when `CONTEXT=production`.
 
 ## Env
 
