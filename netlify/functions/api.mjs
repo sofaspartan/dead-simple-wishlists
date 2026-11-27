@@ -23,7 +23,12 @@ import {
   updateItem,
   updateWishlist,
 } from "./lib/wishlists.mjs";
-import { blobsRoundtrip, initBlobsFromEvent, storageBackend } from "./lib/store.mjs";
+import {
+  blobsRoundtrip,
+  blobsUsesStrong,
+  initBlobsFromEvent,
+  storageBackend,
+} from "./lib/store.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Credentials": "true",
@@ -237,7 +242,13 @@ export async function handler(event) {
         ok: true,
         blobs,
         persist,
+        strong: blobsUsesStrong(),
         hasEventBlobs: Boolean(event.blobs),
+        blobKeys: event.blobs
+          ? Object.keys(
+              JSON.parse(Buffer.from(event.blobs, "base64").toString("utf8"))
+            )
+          : [],
       });
     }
 

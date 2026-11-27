@@ -1,4 +1,4 @@
-import { connectLambda, getStore } from "@netlify/blobs";
+import { connectLambda, getStore, setEnvironmentContext } from "@netlify/blobs";
 import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
@@ -10,16 +10,45 @@ const LOCAL_DIR = join(
   "blobs"
 );
 
+let useStrong = false;
+
 /**
- * Lambda compatibility mode requires connectLambda(event) before getStore.
- * Call on every request (idempotent enough for our purposes).
+ * Configure Blobs from the Lambda event. Prefer full context (including
+ * uncachedEdgeURL when the platform sends it) so reads can be strongly
+ * consistent — edge-only access can take tens of seconds to become visible.
  */
 export function initBlobsFromEvent(event) {
   if (!event?.blobs) return;
   try {
-    connectLambda(event);
+    const data = JSON.parse(Buffer.from(event.blobs, "base64").toString("utf8"));
+    const headers = event.headers || {};
+    const siteID = headers["x-nf-site-id"] || headers["X-Nf-Site-Id"];
+    const deployID = headers["x-nf-deploy-id"] || headers["X-Nf-Deploy-Id"];
+    const uncachedEdgeURL =
+      data.url_uncached ||
+      data.uncached_edge_url ||
+      data.uncachedEdgeURL ||
+      data.uncached_url ||
+      data.uncachedURL ||
+      null;
+
+    setEnvironmentContext({
+      siteID,
+      deployID,
+      token: data.token,
+      edgeURL: data.url,
+      uncachedEdgeURL: uncachedEdgeURL || undefined,
+      primaryRegion: data.primary_region || data.primaryRegion,
+      apiURL: data.api_url || data.apiURL,
+    });
+    useStrong = Boolean(uncachedEdgeURL);
   } catch {
-    // Local smoke without a real Lambda blobs payload
+    try {
+      connectLambda(event);
+      useStrong = false;
+    } catch {
+      // Local smoke without a real Lambda blobs payload
+    }
   }
 }
 
@@ -79,13 +108,25 @@ function localStore(name) {
   };
 }
 
-async function getWithRetry(store, key, attempts = 8) {
+/**
+ * Eventual Blobs can take several seconds to become visible across isolates.
+ * Prefer strong reads when uncachedEdgeURL is available; otherwise retry long
+ * enough that signup → /me and login work without a long client-side wait.
+ */
+async function getWithRetry(store, key, type = "json", attempts = 16) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
-    last = await store.get(key, { type: "json" });
+    try {
+      last = await store.get(key, {
+        type,
+        ...(useStrong ? { consistency: "strong" } : {}),
+      });
+    } catch {
+      last = await store.get(key, { type });
+    }
     if (last != null) return last;
     if (i < attempts - 1) {
-      await new Promise((r) => setTimeout(r, 50 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 250));
     }
   }
   return last;
@@ -96,11 +137,24 @@ function netlifyStore(name) {
   return {
     backend: "netlify",
     async get(key, opts = {}) {
-      if (opts.retry) return getWithRetry(s, key);
-      return s.get(key, { type: opts.type || "json" });
+      const type = opts.type || "json";
+      // retry:false for existence probes that expect a miss
+      if (opts.retry === false) {
+        try {
+          return await s.get(key, {
+            type,
+            ...(useStrong ? { consistency: "strong" } : {}),
+          });
+        } catch {
+          return s.get(key, { type });
+        }
+      }
+      return getWithRetry(s, key, type);
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
+      // Barrier: don't return until the write is readable (or retries exhaust).
+      await getWithRetry(s, key, "json");
     },
     async set(key, value) {
       await s.set(key, value);
@@ -131,12 +185,15 @@ export function storageBackend() {
   }
 }
 
-/** Write+read probe used by /api/health to verify persistence. */
+export function blobsUsesStrong() {
+  return useStrong;
+}
+
 export async function blobsRoundtrip() {
   const probe = store("health");
   const key = `ping_${Date.now()}`;
   await probe.setJSON(key, { ok: true });
-  const read = await probe.get(key, { retry: true });
+  const read = await probe.get(key);
   try {
     await probe.delete(key);
   } catch {
