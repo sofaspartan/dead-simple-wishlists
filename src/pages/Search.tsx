@@ -59,7 +59,7 @@ export default function SearchPage() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Lists or items"
+          placeholder="Wishlists or wishes"
           autoComplete="off"
           enterKeyHint="search"
         />
@@ -72,7 +72,7 @@ export default function SearchPage() {
         <div className="empty-state">
           <p className="empty-title">{query.trim() ? "No matches" : "Nothing to search"}</p>
           <p className="muted">
-            {query.trim() ? "Try a different name." : "Create a list to find it here."}
+            {query.trim() ? "Try a different name." : "Create a wishlist to find it here."}
           </p>
         </div>
       ) : (
@@ -86,7 +86,7 @@ export default function SearchPage() {
                   to={`/app/lists/${w.id}`}
                   title={w.title}
                   variant="list"
-                  meta={`${w.items.length} item${w.items.length === 1 ? "" : "s"}`}
+                  meta={`${w.items.length} wish${w.items.length === 1 ? "" : "es"}`}
                   menu={{
                     "aria-label": `Actions for ${w.title}`,
                     onEdit: () => navigate(`/app/lists/${w.id}/edit`),

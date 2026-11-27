@@ -58,11 +58,11 @@ export default function SharedWishlist() {
                 <span className="back-chevron" aria-hidden="true">
                   <ChevronLeft size={22} strokeWidth={2} />
                 </span>
-                {wishlist?.title || "List"}
+                {wishlist?.title || "Wishlist"}
               </button>
             </div>
           </div>
-          <h1 className="screen-title">Claim item</h1>
+          <h1 className="screen-title">Claim wish</h1>
         </header>
         <div className="screen-body">
           <p className="lead-strong">{claiming.name}</p>
@@ -106,7 +106,7 @@ export default function SharedWishlist() {
 
   return (
     <AppFrame>
-      <TopBar title="Shared list" large />
+      <TopBar title="Shared wishlist" large />
       <div className="screen-body">
         {loading ? (
           <p className="muted">Loading…</p>
@@ -130,7 +130,7 @@ export default function SharedWishlist() {
             ) : null}
             {error && <p className="error">{error}</p>}
             {wishlist.items.length === 0 ? (
-              <p className="empty">Nothing on this list yet.</p>
+              <p className="empty">Nothing on this wishlist yet.</p>
             ) : (
               <ul className="card-grid">
                 {wishlist.items.map((it) => (

@@ -68,7 +68,7 @@ export default function Signup() {
           disabled={!saved}
           onClick={() => setDone(true)}
         >
-          Continue to my lists
+          Continue to my wishlists
           <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />
         </button>
       </Screen>

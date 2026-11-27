@@ -25,7 +25,7 @@ export default function ListCreate() {
   }
 
   return (
-    <Screen title="New list" backTo="/app" backLabel="Home" largeTitle>
+    <Screen title="New wishlist" backTo="/app" backLabel="Home" largeTitle>
       <form className="form-grid" onSubmit={onSubmit}>
         <label>
           Title
@@ -49,7 +49,7 @@ export default function ListCreate() {
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy || !title.trim()}>
           <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
-          {busy ? "Creating…" : "Create list"}
+          {busy ? "Creating…" : "Create wishlist"}
         </button>
       </form>
     </Screen>
