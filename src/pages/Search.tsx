@@ -2,6 +2,7 @@ import { Search as SearchIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import AddCard from "../components/AddCard";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
 import { isFavorite, toggleFavorite } from "../lib/favorites";
@@ -68,12 +69,10 @@ export default function SearchPage() {
       {error && <p className="error">{error}</p>}
       {loading ? (
         <p className="muted">Loading…</p>
-      ) : filtered.length === 0 ? (
+      ) : filtered.length === 0 && query.trim() ? (
         <div className="empty-state">
-          <p className="empty-title">{query.trim() ? "No matches" : "Nothing to search"}</p>
-          <p className="muted">
-            {query.trim() ? "Try a different name." : "Create a wishlist to find it here."}
-          </p>
+          <p className="empty-title">No matches</p>
+          <p className="muted">Try a different name.</p>
         </div>
       ) : (
         <ul className="card-grid">
@@ -104,6 +103,11 @@ export default function SearchPage() {
               </li>
             );
           })}
+          {!query.trim() ? (
+            <li>
+              <AddCard to="/app/new" label="Add wishlist" />
+            </li>
+          ) : null}
         </ul>
       )}
     </Screen>

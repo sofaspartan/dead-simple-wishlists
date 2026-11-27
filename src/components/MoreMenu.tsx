@@ -1,4 +1,4 @@
-import { EllipsisVertical, Heart, Pencil, Trash2 } from "lucide-react";
+import { Ellipsis, Heart, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 
 export type MoreMenuExtra = {
@@ -82,7 +82,7 @@ export default function MoreMenu({
           setOpen((v) => !v);
         }}
       >
-        <EllipsisVertical size={24} strokeWidth={2.25} aria-hidden="true" />
+        <Ellipsis size={24} strokeWidth={2.25} aria-hidden="true" />
       </button>
       {open ? (
         <div
