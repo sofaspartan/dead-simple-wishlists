@@ -1,4 +1,4 @@
-import { Share2 } from "lucide-react";
+import { Calendar, Share2 } from "lucide-react";
 import type { WishlistOwner } from "../api";
 import Avatar from "./Avatar";
 import MoreMenu, { type MoreMenuProps } from "./MoreMenu";
@@ -8,7 +8,7 @@ type Props = {
   createdAt: string;
   owner?: WishlistOwner | null;
   description?: string;
-  /** Owner-only: open share modal */
+  /** Share control (owner or public) */
   onShare?: () => void;
   /** Owner-only: overflow menu props */
   menu?: MoreMenuProps;
@@ -40,7 +40,10 @@ export default function WishlistHeaderCard({
   return (
     <section className="wishlist-header-card">
       <div className="wishlist-header-top">
-        <p className="wishlist-header-date">{formatCreated(createdAt)}</p>
+        <p className="wishlist-header-date">
+          <Calendar size={16} strokeWidth={2} aria-hidden="true" />
+          <span>{formatCreated(createdAt)}</span>
+        </p>
         {showActions ? (
           <div className="wishlist-header-actions">
             {onShare ? (
