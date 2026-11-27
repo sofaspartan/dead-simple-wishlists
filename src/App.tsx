@@ -14,7 +14,6 @@ import ItemForm from "./pages/ItemForm";
 import Landing from "./pages/Landing";
 import ListCreate from "./pages/ListCreate";
 import ListDetail from "./pages/ListDetail";
-import ListEdit from "./pages/ListEdit";
 import ListsHome from "./pages/ListsHome";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
@@ -49,12 +48,7 @@ function ProtectedBootSkeleton() {
     );
   }
 
-  if (
-    pathname.includes("/edit") ||
-    pathname.includes("/items/") ||
-    pathname.includes("/wishes/") ||
-    pathname === "/app/new"
-  ) {
+  if (pathname.includes("/items/") || pathname.includes("/wishes/") || pathname === "/app/new") {
     return (
       <Screen title="Wish" backTo="/app" backLabel="Back" largeTitle={false}>
         <FormSkeleton count={3} label="Loading" />
@@ -122,14 +116,7 @@ export default function App() {
           </Protected>
         }
       />
-      <Route
-        path="/app/lists/:id/edit"
-        element={
-          <Protected>
-            <ListEdit />
-          </Protected>
-        }
-      />
+      <Route path="/app/lists/:id/edit" element={<LegacyListEditRedirect />} />
       <Route path="/app/lists/:id/share" element={<LegacyShareRedirect />} />
       <Route
         path="/app/wishes/new"
@@ -139,14 +126,7 @@ export default function App() {
           </Protected>
         }
       />
-      <Route
-        path="/app/wishes/:itemId/edit"
-        element={
-          <Protected>
-            <ItemForm />
-          </Protected>
-        }
-      />
+      <Route path="/app/wishes/:itemId/edit" element={<LegacyWishEditRedirect />} />
       <Route
         path="/app/wishes/:itemId"
         element={
@@ -163,14 +143,7 @@ export default function App() {
           </Protected>
         }
       />
-      <Route
-        path="/app/lists/:id/items/:itemId/edit"
-        element={
-          <Protected>
-            <ItemForm />
-          </Protected>
-        }
-      />
+      <Route path="/app/lists/:id/items/:itemId/edit" element={<LegacyListItemEditRedirect />} />
       <Route
         path="/app/lists/:id/items/:itemId"
         element={
@@ -195,4 +168,19 @@ function LegacyListRedirect() {
 function LegacyShareRedirect() {
   const { id } = useParams();
   return <Navigate to={`/app/lists/${id}`} replace />;
+}
+
+function LegacyListEditRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/app/lists/${id}`} replace />;
+}
+
+function LegacyWishEditRedirect() {
+  const { itemId } = useParams();
+  return <Navigate to={`/app/wishes/${itemId}`} replace />;
+}
+
+function LegacyListItemEditRedirect() {
+  const { id, itemId } = useParams();
+  return <Navigate to={`/app/wishes/${itemId}?list=${encodeURIComponent(id || "")}`} replace />;
 }

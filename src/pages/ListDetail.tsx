@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
 import AddCard from "../components/AddCard";
+import EditWishModal from "../components/EditWishModal";
+import EditWishlistModal from "../components/EditWishlistModal";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
 import ShareModal from "../components/ShareModal";
@@ -17,27 +19,33 @@ export default function ListDetail() {
   const [loading, setLoading] = useState(true);
   const [favTick, setFavTick] = useState(0);
   const [shareOpen, setShareOpen] = useState(false);
+  const [editListOpen, setEditListOpen] = useState(false);
+  const [editWishId, setEditWishId] = useState<string | null>(null);
+
+  async function reload() {
+    const res = await api.getWishlist(id);
+    setWishlist(res.wishlist);
+  }
 
   useEffect(() => {
     void (async () => {
       setLoading(true);
       try {
-        const res = await api.getWishlist(id);
-        setWishlist(res.wishlist);
+        await reload();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload on id change only
   }, [id]);
 
   async function onDeleteItem(itemId: string, name: string) {
     if (!confirm(`Delete “${name}”?`)) return;
     try {
       await api.deleteWish(itemId);
-      const res = await api.getWishlist(id);
-      setWishlist(res.wishlist);
+      await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete");
     }
@@ -85,7 +93,7 @@ export default function ListDetail() {
           "aria-label": `Actions for ${wishlist.title}`,
           editLabel: "Edit wishlist",
           deleteLabel: "Delete wishlist",
-          onEdit: () => navigate(`/app/lists/${id}/edit`),
+          onEdit: () => setEditListOpen(true),
           onDelete: () => void onDeleteList(wishlist.title),
           extra: {
             label: favorited ? "Unfavorite wishlist" : "Favorite wishlist",
@@ -115,7 +123,7 @@ export default function ListDetail() {
                 "aria-label": `Actions for ${it.name}`,
                 editLabel: "Edit wish",
                 deleteLabel: "Delete wish",
-                onEdit: () => navigate(`/app/wishes/${it.id}/edit`),
+                onEdit: () => setEditWishId(it.id),
                 onDelete: () => void onDeleteItem(it.id, it.name),
               }}
             />
@@ -127,6 +135,34 @@ export default function ListDetail() {
       </ul>
 
       <ShareModal open={shareOpen} wishlistId={id} onClose={() => setShareOpen(false)} />
+
+      <EditWishlistModal
+        open={editListOpen}
+        wishlistId={id}
+        onClose={() => setEditListOpen(false)}
+        onSaved={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+        onDeleted={() => navigate("/app", { replace: true })}
+      />
+
+      <EditWishModal
+        open={Boolean(editWishId)}
+        wishId={editWishId}
+        onClose={() => setEditWishId(null)}
+        onSaved={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+        onDeleted={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+      />
     </Screen>
   );
 }

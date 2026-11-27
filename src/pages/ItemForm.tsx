@@ -1,4 +1,4 @@
-import { Plus, Save, Trash2, Undo2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
@@ -8,16 +8,9 @@ import { FormSkeleton } from "../components/Skeleton";
 const empty = { name: "", url: "", notes: "", price: "" };
 
 export default function ItemForm() {
-  const { id: routeListId = "", itemId: routeItemId } = useParams();
+  const { id: routeListId = "" } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  // Wish-centric: /app/wishes/new | /app/wishes/:itemId
-  // List-centric: /app/lists/:id/items/new | /app/lists/:id/items/:itemId
-  const onWishRoute = !routeListId;
-  const rawId = onWishRoute ? routeItemId : routeItemId;
-  const isNew = !rawId || rawId === "new";
-  const itemId = isNew ? undefined : rawId;
 
   const prefListId = routeListId || searchParams.get("wishlist") || "";
   const preferUnlisted = searchParams.get("unlisted") === "1";
@@ -27,21 +20,15 @@ export default function ItemForm() {
   const [selectedListIds, setSelectedListIds] = useState<string[]>([]);
   const [createMode, setCreateMode] = useState<"lists" | "unlisted" | "new">("lists");
   const [newWishlistTitle, setNewWishlistTitle] = useState("");
-  const [claimed, setClaimed] = useState(false);
-  const [claimedBy, setClaimedBy] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const backTo = useMemo(() => {
-    if (!isNew && itemId) {
-      const qs = routeListId ? `?list=${encodeURIComponent(routeListId)}` : "";
-      return `/app/wishes/${itemId}${qs}`;
-    }
     if (routeListId) return `/app/lists/${routeListId}`;
     if (prefListId) return `/app/lists/${prefListId}`;
     return "/app";
-  }, [isNew, itemId, routeListId, prefListId]);
+  }, [routeListId, prefListId]);
 
   useEffect(() => {
     void (async () => {
@@ -49,42 +36,18 @@ export default function ItemForm() {
         const lists = await api.listWishlists();
         setWishlists(lists.wishlists);
 
-        if (isNew) {
-          if (preferUnlisted) {
-            setCreateMode("unlisted");
-            setSelectedListIds([]);
-          } else if (prefListId && lists.wishlists.some((w) => w.id === prefListId)) {
-            setCreateMode("lists");
-            setSelectedListIds([prefListId]);
-          } else if (lists.wishlists.length > 0) {
-            setCreateMode("lists");
-            setSelectedListIds([lists.wishlists[0].id]);
-          } else {
-            setCreateMode("new");
-            setSelectedListIds([]);
-          }
-        } else if (itemId) {
-          let found;
-          if (onWishRoute) {
-            const res = await api.getWish(itemId);
-            found = res.wish;
-          } else {
-            const res = await api.getWishlist(routeListId);
-            found = res.wishlist.items.find((i) => i.id === itemId);
-          }
-          if (!found) {
-            setError("Wish not found");
-            return;
-          }
-          setItem({
-            name: found.name,
-            url: found.url,
-            notes: found.notes,
-            price: found.price,
-          });
-          setSelectedListIds(found.wishlistIds || (routeListId ? [routeListId] : []));
-          setClaimed(found.claimed);
-          setClaimedBy(found.claimedBy);
+        if (preferUnlisted) {
+          setCreateMode("unlisted");
+          setSelectedListIds([]);
+        } else if (prefListId && lists.wishlists.some((w) => w.id === prefListId)) {
+          setCreateMode("lists");
+          setSelectedListIds([prefListId]);
+        } else if (lists.wishlists.length > 0) {
+          setCreateMode("lists");
+          setSelectedListIds([lists.wishlists[0].id]);
+        } else {
+          setCreateMode("new");
+          setSelectedListIds([]);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
@@ -92,7 +55,7 @@ export default function ItemForm() {
         setLoading(false);
       }
     })();
-  }, [isNew, routeListId, itemId, prefListId, preferUnlisted, onWishRoute]);
+  }, [prefListId, preferUnlisted]);
 
   function toggleList(id: string) {
     setSelectedListIds((ids) =>
@@ -105,27 +68,19 @@ export default function ItemForm() {
     setBusy(true);
     setError("");
     try {
-      if (isNew) {
-        let wishlistIds: string[] = [];
-        if (createMode === "new") {
-          const title = newWishlistTitle.trim() || item.name.trim() || "Wishlist";
-          const created = await api.createWishlist(title);
-          wishlistIds = [created.wishlist.id];
-        } else if (createMode === "lists") {
-          wishlistIds = selectedListIds;
-        }
-        const created = await api.createWish({ ...item, wishlistIds });
-        if (wishlistIds.length === 1) {
-          navigate(`/app/lists/${wishlistIds[0]}`, { replace: true });
-        } else {
-          navigate(`/app/wishes/${created.wish.id}`, { replace: true });
-        }
-      } else if (itemId) {
-        await api.updateWish(itemId, { ...item, wishlistIds: selectedListIds });
-        navigate(`/app/wishes/${itemId}`, {
-          replace: true,
-          state: routeListId ? { backTo: `/app/lists/${routeListId}` } : undefined,
-        });
+      let wishlistIds: string[] = [];
+      if (createMode === "new") {
+        const title = newWishlistTitle.trim() || item.name.trim() || "Wishlist";
+        const created = await api.createWishlist(title);
+        wishlistIds = [created.wishlist.id];
+      } else if (createMode === "lists") {
+        wishlistIds = selectedListIds;
+      }
+      const created = await api.createWish({ ...item, wishlistIds });
+      if (wishlistIds.length === 1) {
+        navigate(`/app/lists/${wishlistIds[0]}`, { replace: true });
+      } else {
+        navigate(`/app/wishes/${created.wish.id}`, { replace: true });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -133,140 +88,76 @@ export default function ItemForm() {
     }
   }
 
-  async function onDelete() {
-    if (!itemId || isNew) return;
-    if (!confirm("Delete this wish?")) return;
-    await api.deleteWish(itemId);
-    const afterDelete = routeListId
-      ? `/app/lists/${routeListId}`
-      : prefListId
-        ? `/app/lists/${prefListId}`
-        : "/app";
-    navigate(afterDelete, { replace: true });
-  }
-
-  async function onUnclaim() {
-    if (!itemId || isNew) return;
-    setBusy(true);
-    try {
-      const res = await api.unclaimWish(itemId);
-      setClaimed(Boolean(res.wish.claimed));
-      setClaimedBy(res.wish.claimedBy ?? null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not unclaim");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const title = isNew ? "Add wish" : "Edit wish";
   const canSubmit = item.name.trim().length > 0;
 
   if (loading) {
     return (
-      <Screen title={title} backTo={backTo} backLabel="Back" largeTitle={false}>
-        <FormSkeleton count={isNew ? 4 : 3} label="Loading wish" />
+      <Screen title="Add wish" backTo={backTo} backLabel="Back" largeTitle={false}>
+        <FormSkeleton count={4} label="Loading wish" />
       </Screen>
     );
   }
 
   return (
-    <Screen title={title} backTo={backTo} backLabel="Back" largeTitle>
-      {!isNew && claimed ? (
-        <div className="banner banner-claimed">
-          Claimed by {claimedBy || "Anonymous"}
-          <button className="text-action" type="button" onClick={() => void onUnclaim()}>
-            <Undo2 size={16} strokeWidth={2} aria-hidden="true" />
-            Unclaim
+    <Screen title="Add wish" backTo={backTo} backLabel="Back" largeTitle>
+      <form className="form-grid" onSubmit={onSubmit}>
+        <div className="create-mode-tabs" role="tablist" aria-label="Add to">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={createMode === "unlisted"}
+            className={`create-mode-tab${createMode === "unlisted" ? " active" : ""}`}
+            onClick={() => setCreateMode("unlisted")}
+          >
+            Unlisted
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={createMode === "lists"}
+            className={`create-mode-tab${createMode === "lists" ? " active" : ""}`}
+            onClick={() => setCreateMode("lists")}
+            disabled={wishlists.length === 0}
+          >
+            Wishlist
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={createMode === "new"}
+            className={`create-mode-tab${createMode === "new" ? " active" : ""}`}
+            onClick={() => setCreateMode("new")}
+          >
+            New list
           </button>
         </div>
-      ) : null}
 
-      <form className="form-grid" onSubmit={onSubmit}>
-        {isNew ? (
-          <>
-            <div className="create-mode-tabs" role="tablist" aria-label="Add to">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={createMode === "unlisted"}
-                className={`create-mode-tab${createMode === "unlisted" ? " active" : ""}`}
-                onClick={() => setCreateMode("unlisted")}
-              >
-                Unlisted
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={createMode === "lists"}
-                className={`create-mode-tab${createMode === "lists" ? " active" : ""}`}
-                onClick={() => setCreateMode("lists")}
-                disabled={wishlists.length === 0}
-              >
-                Wishlist
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={createMode === "new"}
-                className={`create-mode-tab${createMode === "new" ? " active" : ""}`}
-                onClick={() => setCreateMode("new")}
-              >
-                New list
-              </button>
-            </div>
-
-            {createMode === "lists" ? (
-              <fieldset className="wish-list-fieldset">
-                <legend>Wishlists</legend>
-                {wishlists.map((w) => (
-                  <label key={w.id} className="check-row">
-                    <input
-                      type="checkbox"
-                      checked={selectedListIds.includes(w.id)}
-                      onChange={() => toggleList(w.id)}
-                    />
-                    {w.title}
-                  </label>
-                ))}
-              </fieldset>
-            ) : null}
-
-            {createMode === "new" ? (
-              <label>
-                New wishlist name
-                <input
-                  value={newWishlistTitle}
-                  onChange={(e) => setNewWishlistTitle(e.target.value)}
-                  placeholder="Birthday, holidays…"
-                />
-              </label>
-            ) : null}
-          </>
-        ) : (
+        {createMode === "lists" ? (
           <fieldset className="wish-list-fieldset">
             <legend>Wishlists</legend>
-            <p className="muted" style={{ margin: "0 0 0.35rem", fontWeight: 400 }}>
-              A wish can belong to multiple wishlists, or none (unlisted).
-            </p>
-            {wishlists.length === 0 ? (
-              <p className="muted" style={{ margin: 0, fontWeight: 400 }}>
-                No wishlists yet — save to keep this wish unlisted.
-              </p>
-            ) : (
-              wishlists.map((w) => (
-                <label key={w.id} className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={selectedListIds.includes(w.id)}
-                    onChange={() => toggleList(w.id)}
-                  />
-                  {w.title}
-                </label>
-              ))
-            )}
+            {wishlists.map((w) => (
+              <label key={w.id} className="check-row">
+                <input
+                  type="checkbox"
+                  checked={selectedListIds.includes(w.id)}
+                  onChange={() => toggleList(w.id)}
+                />
+                {w.title}
+              </label>
+            ))}
           </fieldset>
-        )}
+        ) : null}
+
+        {createMode === "new" ? (
+          <label>
+            New wishlist name
+            <input
+              value={newWishlistTitle}
+              onChange={(e) => setNewWishlistTitle(e.target.value)}
+              placeholder="Birthday, holidays…"
+            />
+          </label>
+        ) : null}
 
         <label>
           Name
@@ -274,7 +165,7 @@ export default function ItemForm() {
             value={item.name}
             onChange={(e) => setItem((s) => ({ ...s, name: e.target.value }))}
             required
-            autoFocus={isNew}
+            autoFocus
           />
         </label>
         <label>
@@ -304,25 +195,10 @@ export default function ItemForm() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy || !canSubmit}>
-          {isNew ? (
-            <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
-          ) : (
-            <Save size={18} strokeWidth={2} aria-hidden="true" />
-          )}
-          {busy ? "Saving…" : isNew ? "Add wish" : "Save"}
+          <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
+          {busy ? "Saving…" : "Add wish"}
         </button>
       </form>
-
-      {!isNew ? (
-        <button
-          className="btn btn-danger btn-block"
-          type="button"
-          onClick={() => void onDelete()}
-        >
-          <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
-          Delete wish
-        </button>
-      ) : null}
     </Screen>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
 import AddCard from "../components/AddCard";
+import EditWishlistModal from "../components/EditWishlistModal";
 import FavoriteSearchModal from "../components/FavoriteSearchModal";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
@@ -9,20 +9,24 @@ import { CardGridSkeleton } from "../components/Skeleton";
 import { getFavoriteIds, toggleFavorite } from "../lib/favorites";
 
 export default function Favorites() {
-  const navigate = useNavigate();
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [favIds, setFavIds] = useState<string[]>(() => getFavoriteIds());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [editListId, setEditListId] = useState<string | null>(null);
+
+  async function reload() {
+    const res = await api.listWishlists();
+    setWishlists(res.wishlists);
+    setFavIds(getFavoriteIds());
+  }
 
   useEffect(() => {
     void (async () => {
       setLoading(true);
       try {
-        const res = await api.listWishlists();
-        setWishlists(res.wishlists);
-        setFavIds(getFavoriteIds());
+        await reload();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
@@ -69,7 +73,7 @@ export default function Favorites() {
                   "aria-label": `Actions for ${w.title}`,
                   editLabel: "Edit wishlist",
                   deleteLabel: "Delete wishlist",
-                  onEdit: () => navigate(`/app/lists/${w.id}/edit`),
+                  onEdit: () => setEditListId(w.id),
                   onDelete: () => void onDeleteList(w.id, w.title),
                   extra: {
                     label: "Unfavorite wishlist",
@@ -94,6 +98,22 @@ export default function Favorites() {
         wishlists={wishlists}
         favoritedIds={favIds}
         onPick={onAddFavorite}
+      />
+
+      <EditWishlistModal
+        open={Boolean(editListId)}
+        wishlistId={editListId}
+        onClose={() => setEditListId(null)}
+        onSaved={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+        onDeleted={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
       />
     </Screen>
   );
