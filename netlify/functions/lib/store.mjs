@@ -79,13 +79,18 @@ function localStore(name) {
   };
 }
 
-async function getWithRetry(store, key, attempts = 8) {
+/**
+ * Eventual Blobs can take several seconds to become visible across isolates.
+ * Keep retrying long enough that signup → /me and login work without a
+ * client-side wait (strong consistency needs uncachedEdgeURL we don't have).
+ */
+async function getWithRetry(store, key, type = "json", attempts = 16) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
-    last = await store.get(key, { type: "json" });
+    last = await store.get(key, { type });
     if (last != null) return last;
     if (i < attempts - 1) {
-      await new Promise((r) => setTimeout(r, 50 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 250));
     }
   }
   return last;
@@ -96,11 +101,17 @@ function netlifyStore(name) {
   return {
     backend: "netlify",
     async get(key, opts = {}) {
-      if (opts.retry) return getWithRetry(s, key);
-      return s.get(key, { type: opts.type || "json" });
+      const type = opts.type || "json";
+      // retry:false for existence probes that expect a miss
+      if (opts.retry === false) {
+        return s.get(key, { type });
+      }
+      return getWithRetry(s, key, type);
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
+      // Barrier: don't return until the write is readable (or retries exhaust).
+      await getWithRetry(s, key, "json");
     },
     async set(key, value) {
       await s.set(key, value);

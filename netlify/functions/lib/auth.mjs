@@ -52,7 +52,7 @@ export function clearSessionCookie() {
 export async function createUser(username, password) {
   const users = usersStore();
   const key = username.toLowerCase();
-  const existing = await users.get(key);
+  const existing = await users.get(key, { retry: false });
   if (existing) {
     const err = new Error("Username already taken");
     err.status = 409;
