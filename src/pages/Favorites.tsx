@@ -1,7 +1,8 @@
-import { Heart } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import AddCard from "../components/AddCard";
+import FavoriteSearchModal from "../components/FavoriteSearchModal";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
 import { CardGridSkeleton } from "../components/Skeleton";
@@ -13,6 +14,7 @@ export default function Favorites() {
   const [favIds, setFavIds] = useState<string[]>(() => getFavoriteIds());
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -41,22 +43,18 @@ export default function Favorites() {
     }
   }
 
+  function onAddFavorite(id: string) {
+    if (!favIds.includes(id)) {
+      toggleFavorite(id);
+      setFavIds(getFavoriteIds());
+    }
+  }
+
   return (
     <Screen title="Favorites" tabs largeTitle>
       {error && <p className="error">{error}</p>}
       {loading ? (
         <CardGridSkeleton label="Loading favorites" />
-      ) : favorites.length === 0 ? (
-        <div className="empty-state">
-          <span className="empty-icon" aria-hidden="true">
-            <Heart size={36} strokeWidth={1.5} />
-          </span>
-          <p className="empty-title">No favorites yet</p>
-          <p className="muted">Star a wishlist from its ⋯ menu to find it here.</p>
-          <Link className="btn" to="/app">
-            Browse wishlists
-          </Link>
-        </div>
       ) : (
         <ul className="card-grid">
           {favorites.map((w) => (
@@ -82,8 +80,19 @@ export default function Favorites() {
               />
             </li>
           ))}
+          <li>
+            <AddCard label="Add to favorites" onClick={() => setPickerOpen(true)} />
+          </li>
         </ul>
       )}
+
+      <FavoriteSearchModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        wishlists={wishlists}
+        favoritedIds={favIds}
+        onPick={onAddFavorite}
+      />
     </Screen>
   );
 }
