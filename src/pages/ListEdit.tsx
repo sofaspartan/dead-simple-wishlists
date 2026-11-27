@@ -42,7 +42,7 @@ export default function ListEdit() {
   }
 
   async function onDelete() {
-    if (!confirm("Delete this entire wishlist?")) return;
+    if (!confirm("Delete this wishlist? Wishes on it stay in Unlisted wishes.")) return;
     await api.deleteWishlist(id);
     navigate("/app", { replace: true });
   }

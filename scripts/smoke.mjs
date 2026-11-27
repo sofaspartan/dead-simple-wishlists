@@ -5,9 +5,18 @@
 import { handler } from "../netlify/functions/api.mjs";
 
 function event(method, path, { body, cookie } = {}) {
+  const [pathname, qs] = path.split("?");
+  const queryStringParameters = {};
+  if (qs) {
+    for (const part of qs.split("&")) {
+      const [k, v = ""] = part.split("=");
+      queryStringParameters[decodeURIComponent(k)] = decodeURIComponent(v);
+    }
+  }
   return {
     httpMethod: method,
-    path: `/api${path}`,
+    path: `/api${pathname}`,
+    queryStringParameters,
     headers: {
       "Content-Type": "application/json",
       ...(cookie ? { cookie } : {}),
@@ -121,7 +130,33 @@ if (meAfter.data.user.displayName !== "Smoke Tester") {
   throw new Error("display name not persisted");
 }
 
-console.log("13. delete wishlist");
+console.log("13. delete wishlist keeps wishes unlisted");
 await call("DELETE", `/wishlists/${listId}`, { cookie: relogin.cookie });
+const unlisted = await call("GET", "/wishes?filter=unlisted", {
+  cookie: relogin.cookie,
+});
+if (!unlisted.data.wishes.some((w) => w.id === itemId)) {
+  throw new Error("wish should survive wishlist delete as unlisted");
+}
+
+console.log("14. create unlisted wish + attach to new list");
+const lone = await call("POST", "/wishes", {
+  cookie: relogin.cookie,
+  body: { name: "Solo mug", wishlistIds: [] },
+});
+const wl2 = await call("POST", "/wishlists", {
+  cookie: relogin.cookie,
+  body: { title: "Holidays" },
+});
+await call("PATCH", `/wishes/${lone.data.wish.id}`, {
+  cookie: relogin.cookie,
+  body: { wishlistIds: [wl2.data.wishlist.id] },
+});
+const attached = await call("GET", `/wishlists/${wl2.data.wishlist.id}`, {
+  cookie: relogin.cookie,
+});
+if (!attached.data.wishlist.items.some((i) => i.id === lone.data.wish.id)) {
+  throw new Error("wish not attached to wishlist");
+}
 
 console.log("\nAll smoke checks passed.");

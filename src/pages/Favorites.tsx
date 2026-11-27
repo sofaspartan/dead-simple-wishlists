@@ -34,7 +34,7 @@ export default function Favorites() {
   const favorites = wishlists.filter((w) => favIds.includes(w.id));
 
   async function onDeleteList(id: string, title: string) {
-    if (!confirm(`Delete “${title}”?`)) return;
+    if (!confirm(`Delete “${title}”? Wishes on it stay in Unlisted wishes.`)) return;
     try {
       await api.deleteWishlist(id);
       setWishlists((list) => list.filter((w) => w.id !== id));
@@ -67,10 +67,12 @@ export default function Favorites() {
                 meta={`${w.items.length} wish${w.items.length === 1 ? "" : "es"}`}
                 menu={{
                   "aria-label": `Actions for ${w.title}`,
+                  editLabel: "Edit wishlist",
+                  deleteLabel: "Delete wishlist",
                   onEdit: () => navigate(`/app/lists/${w.id}/edit`),
                   onDelete: () => void onDeleteList(w.id, w.title),
                   extra: {
-                    label: "Unfavorite",
+                    label: "Unfavorite wishlist",
                     onSelect: () => {
                       toggleFavorite(w.id);
                       setFavIds(getFavoriteIds());

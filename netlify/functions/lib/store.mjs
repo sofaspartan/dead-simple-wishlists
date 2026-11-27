@@ -205,6 +205,8 @@ export async function blobsRoundtrip() {
 export const usersStore = () => store("users");
 export const sessionsStore = () => store("sessions");
 export const wishlistsStore = () => store("wishlists");
+export const wishesStore = () => store("wishes");
 export const slugIndexStore = () => store("slug-index");
 export const userWishlistsStore = () => store("user-wishlists");
+export const userWishesStore = () => store("user-wishes");
 export const avatarsStore = () => store("avatars");

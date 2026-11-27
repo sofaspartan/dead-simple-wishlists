@@ -42,7 +42,7 @@ export default function SearchPage() {
   }, [wishlists, query]);
 
   async function onDeleteList(id: string, title: string) {
-    if (!confirm(`Delete “${title}”?`)) return;
+    if (!confirm(`Delete “${title}”? Wishes on it stay in Unlisted wishes.`)) return;
     try {
       await api.deleteWishlist(id);
       setWishlists((list) => list.filter((w) => w.id !== id));
@@ -90,10 +90,12 @@ export default function SearchPage() {
                   meta={`${w.items.length} wish${w.items.length === 1 ? "" : "es"}`}
                   menu={{
                     "aria-label": `Actions for ${w.title}`,
+                    editLabel: "Edit wishlist",
+                    deleteLabel: "Delete wishlist",
                     onEdit: () => navigate(`/app/lists/${w.id}/edit`),
                     onDelete: () => void onDeleteList(w.id, w.title),
                     extra: {
-                      label: favorited ? "Unfavorite" : "Favorite",
+                      label: favorited ? "Unfavorite wishlist" : "Favorite wishlist",
                       onSelect: () => {
                         toggleFavorite(w.id);
                         setFavTick((n) => n + 1);
