@@ -397,6 +397,12 @@ textarea:focus {
   text-decoration: none;
 }
 
+.nav-row:has(.nav-row-main) {
+  gap: 0.35rem;
+  padding: 0.35rem 0.45rem 0.35rem 1.05rem;
+  min-height: 3.5rem;
+}
+
 .nav-list li:last-child .nav-row,
 .nav-list > .nav-row:last-child {
   border-bottom: none;
@@ -405,6 +411,20 @@ textarea:focus {
 .nav-row:hover {
   text-decoration: none;
   background: var(--surface-raised);
+}
+
+.nav-row-main {
+  flex: 1;
+  min-width: 0;
+  display: block;
+  padding: 0.65rem 0.4rem 0.65rem 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav-row-main:hover {
+  text-decoration: none;
+  color: inherit;
 }
 
 .nav-row-title {
@@ -439,6 +459,83 @@ textarea:focus {
   display: flex;
   gap: 0.55rem;
   flex-wrap: wrap;
+}
+
+.action-strip-center {
+  justify-content: center;
+  width: 100%;
+}
+
+/* —— Overflow menu —— */
+.more-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.more-menu-trigger {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.more-menu-trigger:hover,
+.more-menu-trigger[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+}
+
+.more-menu-panel {
+  position: absolute;
+  top: calc(100% - 0.15rem);
+  right: 0.15rem;
+  z-index: 30;
+  min-width: 9.5rem;
+  padding: 0.3rem;
+  border-radius: 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  display: grid;
+  gap: 0.1rem;
+  animation: rise 0.18s ease both;
+}
+
+.more-menu-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.7rem 0.75rem;
+  border-radius: 9px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.more-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.more-menu-item-danger {
+  color: var(--danger);
+}
+
+.more-menu-item-danger:hover {
+  background: rgba(255, 69, 58, 0.12);
 }
 
 .empty-state {
