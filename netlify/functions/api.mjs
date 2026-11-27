@@ -1,12 +1,15 @@
 import {
   clearSessionCookie,
+  clearUserAvatar,
   createSession,
   createUser,
   destroySession,
+  getAvatarRecord,
   getUserFromRequest,
   loginUser,
   resetPasswordWithCode,
   setSessionCookie,
+  setUserAvatar,
   COOKIE_NAME,
 } from "./lib/auth.mjs";
 import {
@@ -18,10 +21,10 @@ import {
   getOwnedWishlist,
   getSharedWishlist,
   listWishlistsForUser,
-  publicWishlist,
   unclaimItem,
   updateItem,
   updateWishlist,
+  withOwner,
 } from "./lib/wishlists.mjs";
 import {
   blobsRoundtrip,
@@ -142,6 +145,21 @@ export async function handler(event) {
         return json(200, { user });
       }
 
+      if (parts[1] === "avatar" && method === "POST") {
+        const user = await getUserFromRequest(event);
+        if (!user) return json(401, { error: "Not signed in" });
+        requireFields(body, ["image"]);
+        const updated = await setUserAvatar(user.id, body.image);
+        return json(200, { user: updated });
+      }
+
+      if (parts[1] === "avatar" && method === "DELETE") {
+        const user = await getUserFromRequest(event);
+        if (!user) return json(401, { error: "Not signed in" });
+        const updated = await clearUserAvatar(user.id);
+        return json(200, { user: updated });
+      }
+
       if (parts[1] === "reset" && method === "POST") {
         requireFields(body, ["username", "recoveryCode", "newPassword"]);
         if (String(body.newPassword).length < 8) {
@@ -194,7 +212,7 @@ export async function handler(event) {
 
       if (!parts[2] && method === "GET") {
         const list = await getOwnedWishlist(user.id, wishlistId);
-        return json(200, { wishlist: publicWishlist(list, { isOwner: true }) });
+        return json(200, { wishlist: await withOwner(list, { isOwner: true }) });
       }
 
       if (!parts[2] && method === "PATCH") {
@@ -226,6 +244,21 @@ export async function handler(event) {
         const wishlist = await addItem(user.id, wishlistId, body);
         return json(201, { wishlist });
       }
+    }
+
+    if (parts[0] === "avatars" && parts[1] && method === "GET") {
+      const record = await getAvatarRecord(parts[1]);
+      if (!record) return json(404, { error: "Avatar not found" });
+      return {
+        statusCode: 200,
+        headers: {
+          "Content-Type": record.contentType,
+          "Cache-Control": "public, max-age=86400",
+          ...corsHeaders,
+        },
+        body: record.data,
+        isBase64Encoded: true,
+      };
     }
 
     if (parts[0] === "health" && method === "GET") {

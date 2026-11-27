@@ -82,7 +82,7 @@ export default function MoreMenu({
           setOpen((v) => !v);
         }}
       >
-        <EllipsisVertical size={20} strokeWidth={2} aria-hidden="true" />
+        <EllipsisVertical size={24} strokeWidth={2.25} aria-hidden="true" />
       </button>
       {open ? (
         <div
@@ -102,7 +102,7 @@ export default function MoreMenu({
               onEdit();
             }}
           >
-            <Pencil size={16} strokeWidth={2} aria-hidden="true" />
+            <Pencil size={20} strokeWidth={2} aria-hidden="true" />
             {editLabel}
           </button>
           {extra ? (
@@ -117,7 +117,7 @@ export default function MoreMenu({
                 extra.onSelect();
               }}
             >
-              <Heart size={16} strokeWidth={2} aria-hidden="true" />
+              <Heart size={20} strokeWidth={2} aria-hidden="true" />
               {extra.label}
             </button>
           ) : null}
@@ -132,7 +132,7 @@ export default function MoreMenu({
               onDelete();
             }}
           >
-            <Trash2 size={16} strokeWidth={2} aria-hidden="true" />
+            <Trash2 size={20} strokeWidth={2} aria-hidden="true" />
             {deleteLabel}
           </button>
         </div>

@@ -1,7 +1,8 @@
+import { getOwnerById } from "./auth.mjs";
 import { generateId, generateShareSlug } from "./crypto.mjs";
 import { slugIndexStore, userWishlistsStore, wishlistsStore } from "./store.mjs";
 
-function publicWishlist(list, { includeClaims = true, isOwner = false } = {}) {
+function publicWishlist(list, { includeClaims = true, isOwner = false, owner = null } = {}) {
   return {
     id: list.id,
     title: list.title,
@@ -10,8 +11,14 @@ function publicWishlist(list, { includeClaims = true, isOwner = false } = {}) {
     createdAt: list.createdAt,
     updatedAt: list.updatedAt,
     ownerId: isOwner ? list.userId : undefined,
+    owner: owner || null,
     items: (list.items || []).map((item) => publicItem(item, { includeClaims, isOwner })),
   };
+}
+
+async function withOwner(list, opts = {}) {
+  const owner = await getOwnerById(list.userId);
+  return publicWishlist(list, { ...opts, owner });
 }
 
 function publicItem(item, { includeClaims = true, isOwner = false } = {}) {
@@ -34,10 +41,11 @@ export async function listWishlistsForUser(userId) {
   const index = userWishlistsStore();
   const wishlists = wishlistsStore();
   const ids = (await index.get(userId)) || [];
+  const owner = await getOwnerById(userId);
   const lists = [];
   for (const id of ids) {
     const list = await wishlists.get(id);
-    if (list) lists.push(publicWishlist(list, { isOwner: true }));
+    if (list) lists.push(publicWishlist(list, { isOwner: true, owner }));
   }
   lists.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
   return lists;
@@ -73,7 +81,7 @@ export async function createWishlist(userId, { title, description }) {
   const ids = (await index.get(userId)) || [];
   ids.unshift(id);
   await index.setJSON(userId, ids);
-  return publicWishlist(list, { isOwner: true });
+  return withOwner(list, { isOwner: true });
 }
 
 export async function getOwnedWishlist(userId, wishlistId) {
@@ -100,7 +108,7 @@ export async function updateWishlist(userId, wishlistId, { title, description })
   if (description !== undefined) list.description = description.trim();
   list.updatedAt = new Date().toISOString();
   await wishlistsStore().setJSON(list.id, list);
-  return publicWishlist(list, { isOwner: true });
+  return withOwner(list, { isOwner: true });
 }
 
 export async function deleteWishlist(userId, wishlistId) {
@@ -136,7 +144,7 @@ export async function addItem(userId, wishlistId, data) {
   list.items.push(item);
   list.updatedAt = new Date().toISOString();
   await wishlistsStore().setJSON(list.id, list);
-  return publicWishlist(list, { isOwner: true });
+  return withOwner(list, { isOwner: true });
 }
 
 export async function updateItem(userId, wishlistId, itemId, data) {
@@ -160,7 +168,7 @@ export async function updateItem(userId, wishlistId, itemId, data) {
   if (data.price !== undefined) item.price = data.price.trim();
   list.updatedAt = new Date().toISOString();
   await wishlistsStore().setJSON(list.id, list);
-  return publicWishlist(list, { isOwner: true });
+  return withOwner(list, { isOwner: true });
 }
 
 export async function deleteItem(userId, wishlistId, itemId) {
@@ -174,7 +182,7 @@ export async function deleteItem(userId, wishlistId, itemId) {
   }
   list.updatedAt = new Date().toISOString();
   await wishlistsStore().setJSON(list.id, list);
-  return publicWishlist(list, { isOwner: true });
+  return withOwner(list, { isOwner: true });
 }
 
 export async function unclaimItem(userId, wishlistId, itemId) {
@@ -190,7 +198,7 @@ export async function unclaimItem(userId, wishlistId, itemId) {
   item.claimedAt = null;
   list.updatedAt = new Date().toISOString();
   await wishlistsStore().setJSON(list.id, list);
-  return publicWishlist(list, { isOwner: true });
+  return withOwner(list, { isOwner: true });
 }
 
 export async function getSharedWishlist(slug) {
@@ -207,7 +215,7 @@ export async function getSharedWishlist(slug) {
     err.status = 404;
     throw err;
   }
-  return publicWishlist(list, { includeClaims: true, isOwner: false });
+  return withOwner(list, { includeClaims: true, isOwner: false });
 }
 
 export async function claimItem(slug, itemId, { name, anonymous }) {
@@ -242,7 +250,7 @@ export async function claimItem(slug, itemId, { name, anonymous }) {
   item.claimedAt = new Date().toISOString();
   list.updatedAt = new Date().toISOString();
   await wishlists.setJSON(list.id, list);
-  return publicWishlist(list, { includeClaims: true, isOwner: false });
+  return withOwner(list, { includeClaims: true, isOwner: false });
 }
 
-export { publicWishlist };
+export { publicWishlist, withOwner };

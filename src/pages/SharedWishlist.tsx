@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
 import AppFrame from "../components/AppFrame";
+import Avatar from "../components/Avatar";
 import MediaCard from "../components/MediaCard";
 import TopBar from "../components/TopBar";
 
@@ -122,6 +123,16 @@ export default function SharedWishlist() {
         ) : (
           <>
             <p className="eyebrow">Shared wishlist</p>
+            {wishlist.owner ? (
+              <div className="shared-owner">
+                <Avatar
+                  name={wishlist.owner.displayName || wishlist.owner.username}
+                  imageUrl={wishlist.owner.avatarUrl}
+                  size="md"
+                />
+                <span className="muted">@{wishlist.owner.username}</span>
+              </div>
+            ) : null}
             <h1 className="screen-title" style={{ marginTop: 0 }}>
               {wishlist.title}
             </h1>

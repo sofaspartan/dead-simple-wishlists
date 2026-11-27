@@ -60,6 +60,7 @@ export default function ListsHome() {
                   to={`/app/lists/${w.id}`}
                   title={w.title}
                   variant="list"
+                  owner={w.owner}
                   meta={
                     [
                       `${w.items.length} wish${w.items.length === 1 ? "" : "es"}`,
