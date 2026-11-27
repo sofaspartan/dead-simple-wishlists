@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import Screen from "../components/Screen";
+import { ShareSkeleton } from "../components/Skeleton";
 
 export default function ListShare() {
   const { id = "" } = useParams();
@@ -34,7 +35,7 @@ export default function ListShare() {
   if (loading) {
     return (
       <Screen title="Share" backTo={`/app/lists/${id}`} backLabel="Wishlist" largeTitle={false}>
-        <p className="muted">Loading…</p>
+        <ShareSkeleton label="Loading share link" />
       </Screen>
     );
   }

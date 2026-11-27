@@ -1,5 +1,5 @@
 import { Ellipsis, Heart, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type MoreMenuExtra = {
@@ -17,11 +17,16 @@ export type MoreMenuProps = {
   extra?: MoreMenuExtra;
 };
 
-type PanelCoords = {
-  top: number;
-  left: number;
-  openUp: boolean;
+const iconProps = {
+  size: 20,
+  strokeWidth: 1.75,
+  fill: "currentColor",
+  "aria-hidden": true as const,
 };
+
+function portalTarget(): HTMLElement {
+  return document.querySelector<HTMLElement>(".phone-frame") ?? document.body;
+}
 
 export default function MoreMenu({
   "aria-label": ariaLabel = "More actions",
@@ -32,105 +37,48 @@ export default function MoreMenu({
   extra,
 }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
-  const [coords, setCoords] = useState<PanelCoords | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   useEffect(() => {
     if (!open) return;
 
-    function onPointerDown(e: PointerEvent) {
-      const target = e.target as Node;
-      if (rootRef.current?.contains(target) || panelRef.current?.contains(target)) {
-        return;
-      }
-      setOpen(false);
-    }
-
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
     }
 
-    document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
-  useLayoutEffect(() => {
-    if (!open) {
-      setCoords(null);
-      return;
-    }
+  useEffect(() => {
+    if (!open) return;
+    const first = sheetRef.current?.querySelector<HTMLButtonElement>("button");
+    first?.focus();
+  }, [open]);
 
-    function place() {
-      const trigger = rootRef.current;
-      const panel = panelRef.current;
-      if (!trigger || !panel) return;
+  function close() {
+    setOpen(false);
+  }
 
-      const rect = trigger.getBoundingClientRect();
-      const panelHeight = panel.offsetHeight;
-      const panelWidth = panel.offsetWidth;
-      const gap = 2;
-      const margin = 8;
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      const openUp = spaceBelow < panelHeight + 12 && spaceAbove > spaceBelow;
-
-      let top = openUp ? rect.top - panelHeight + gap : rect.bottom - gap;
-      let left = rect.right - panelWidth;
-
-      left = Math.max(margin, Math.min(left, window.innerWidth - panelWidth - margin));
-      if (openUp) {
-        top = Math.max(margin, top);
-      } else {
-        top = Math.min(top, window.innerHeight - panelHeight - margin);
-      }
-
-      setCoords({ top, left, openUp });
-    }
-
-    place();
-    window.addEventListener("resize", place);
-    window.addEventListener("scroll", place, true);
-    return () => {
-      window.removeEventListener("resize", place);
-      window.removeEventListener("scroll", place, true);
-    };
-  }, [open, extra]);
-
-  const panel =
+  const sheet =
     open && typeof document !== "undefined"
       ? createPortal(
-          <div
-            className={`more-menu-panel${coords?.openUp ? " open-up" : ""}`}
-            id={menuId}
-            role="menu"
-            ref={panelRef}
-            style={{
-              top: coords?.top ?? 0,
-              left: coords?.left ?? 0,
-              visibility: coords ? "visible" : "hidden",
-            }}
-          >
+          <div className="more-menu-root" role="presentation">
             <button
               type="button"
-              className="more-menu-item"
-              role="menuitem"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpen(false);
-                onEdit();
-              }}
+              className="more-menu-backdrop"
+              aria-label="Close"
+              onClick={close}
+            />
+            <div
+              className="more-menu-sheet"
+              id={menuId}
+              role="menu"
+              aria-label={ariaLabel}
+              ref={sheetRef}
             >
-              <Pencil size={20} strokeWidth={2} aria-hidden="true" />
-              {editLabel}
-            </button>
-            {extra ? (
               <button
                 type="button"
                 className="more-menu-item"
@@ -138,30 +86,52 @@ export default function MoreMenu({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setOpen(false);
-                  extra.onSelect();
+                  close();
+                  onEdit();
                 }}
               >
-                <Heart size={20} strokeWidth={2} aria-hidden="true" />
-                {extra.label}
+                <span className="more-menu-item-icon">
+                  <Pencil {...iconProps} />
+                </span>
+                {editLabel}
               </button>
-            ) : null}
-            <button
-              type="button"
-              className="more-menu-item more-menu-item-danger"
-              role="menuitem"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setOpen(false);
-                onDelete();
-              }}
-            >
-              <Trash2 size={20} strokeWidth={2} aria-hidden="true" />
-              {deleteLabel}
-            </button>
+              {extra ? (
+                <button
+                  type="button"
+                  className="more-menu-item"
+                  role="menuitem"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    close();
+                    extra.onSelect();
+                  }}
+                >
+                  <span className="more-menu-item-icon">
+                    <Heart {...iconProps} />
+                  </span>
+                  {extra.label}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="more-menu-item more-menu-item-danger"
+                role="menuitem"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  close();
+                  onDelete();
+                }}
+              >
+                <span className="more-menu-item-icon more-menu-item-icon-danger">
+                  <Trash2 {...iconProps} />
+                </span>
+                {deleteLabel}
+              </button>
+            </div>
           </div>,
-          document.body,
+          portalTarget(),
         )
       : null;
 
@@ -182,7 +152,7 @@ export default function MoreMenu({
       >
         <Ellipsis size={24} strokeWidth={2.25} aria-hidden="true" />
       </button>
-      {panel}
+      {sheet}
     </div>
   );
 }

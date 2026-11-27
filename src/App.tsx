@@ -1,5 +1,12 @@
-import { Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "./auth";
+import {
+  AccountSkeleton,
+  AppBootSkeleton,
+  DetailSkeleton,
+  FormSkeleton,
+} from "./components/Skeleton";
+import Screen from "./components/Screen";
 import Account from "./pages/Account";
 import Favorites from "./pages/Favorites";
 import ItemForm from "./pages/ItemForm";
@@ -15,19 +22,44 @@ import Search from "./pages/Search";
 import SharedWishlist from "./pages/SharedWishlist";
 import Signup from "./pages/Signup";
 
-function Protected({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  if (loading) {
+function ProtectedBootSkeleton() {
+  const { pathname } = useLocation();
+
+  if (pathname === "/app/account") {
     return (
-      <div className="phone-frame">
-        <div className="phone-scroll">
-          <p className="muted" style={{ padding: "2rem 1.25rem" }}>
-            Loading…
-          </p>
-        </div>
-      </div>
+      <Screen title="Account" tabs largeTitle>
+        <AccountSkeleton label="Loading account" />
+      </Screen>
     );
   }
+
+  if (/^\/app\/lists\/[^/]+$/.test(pathname)) {
+    return (
+      <Screen title="Wishlist" backTo="/app" backLabel="Home" tabs largeTitle={false}>
+        <DetailSkeleton label="Loading wishlist" />
+      </Screen>
+    );
+  }
+
+  if (
+    pathname.includes("/edit") ||
+    pathname.includes("/items/") ||
+    pathname.includes("/wishes/") ||
+    pathname === "/app/new"
+  ) {
+    return (
+      <Screen title="Wish" backTo="/app" backLabel="Back" largeTitle={false}>
+        <FormSkeleton count={3} label="Loading" />
+      </Screen>
+    );
+  }
+
+  return <AppBootSkeleton label="Loading" />;
+}
+
+function Protected({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return <ProtectedBootSkeleton />;
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }

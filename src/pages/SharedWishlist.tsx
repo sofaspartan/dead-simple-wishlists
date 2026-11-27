@@ -5,6 +5,7 @@ import { api, type Wishlist, type WishlistItem } from "../api";
 import AppFrame from "../components/AppFrame";
 import Avatar from "../components/Avatar";
 import MediaCard from "../components/MediaCard";
+import { CardGridSkeleton } from "../components/Skeleton";
 import TopBar from "../components/TopBar";
 
 export default function SharedWishlist() {
@@ -110,7 +111,7 @@ export default function SharedWishlist() {
       <TopBar title="Shared wishlist" large />
       <div className="screen-body">
         {loading ? (
-          <p className="muted">Loading…</p>
+          <CardGridSkeleton label="Loading shared wishlist" />
         ) : !wishlist ? (
           <>
             <h1 className="screen-title">Not found</h1>

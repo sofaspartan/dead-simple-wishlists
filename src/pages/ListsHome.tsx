@@ -4,6 +4,7 @@ import { api, type Wishlist } from "../api";
 import AddCard from "../components/AddCard";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
+import { CardGridSkeleton } from "../components/Skeleton";
 import { isFavorite, toggleFavorite } from "../lib/favorites";
 
 export default function ListsHome() {
@@ -41,7 +42,7 @@ export default function ListsHome() {
     <Screen title="Wishlists" tabs largeTitle>
       {error && <p className="error">{error}</p>}
       {loading ? (
-        <p className="muted">Loading…</p>
+        <CardGridSkeleton label="Loading wishlists" />
       ) : (
         <ul className="card-grid">
           {wishlists.map((w) => {

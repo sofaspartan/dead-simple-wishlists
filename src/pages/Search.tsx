@@ -5,6 +5,7 @@ import { api, type Wishlist } from "../api";
 import AddCard from "../components/AddCard";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
+import { CardGridSkeleton } from "../components/Skeleton";
 import { isFavorite, toggleFavorite } from "../lib/favorites";
 
 export default function SearchPage() {
@@ -68,7 +69,7 @@ export default function SearchPage() {
 
       {error && <p className="error">{error}</p>}
       {loading ? (
-        <p className="muted">Loading…</p>
+        <CardGridSkeleton label="Loading wishlists" />
       ) : filtered.length === 0 && query.trim() ? (
         <div className="empty-state">
           <p className="empty-title">No matches</p>

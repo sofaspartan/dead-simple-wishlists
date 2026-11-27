@@ -6,6 +6,7 @@ import AddCard from "../components/AddCard";
 import MediaCard from "../components/MediaCard";
 import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
+import { DetailSkeleton } from "../components/Skeleton";
 import { isFavorite, toggleFavorite } from "../lib/favorites";
 
 export default function ListDetail() {
@@ -53,7 +54,7 @@ export default function ListDetail() {
   if (loading) {
     return (
       <Screen title="Wishlist" backTo="/app" backLabel="Home" tabs largeTitle={false}>
-        <p className="muted">Loading…</p>
+        <DetailSkeleton label="Loading wishlist" />
       </Screen>
     );
   }
