@@ -34,7 +34,6 @@ export default function ListCreate() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Birthday, holidays…"
             required
-            autoFocus
           />
         </label>
         <label>

@@ -1,5 +1,5 @@
 import { Search as SearchIcon, X } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Wishlist } from "../api";
 
@@ -23,7 +23,6 @@ export default function FavoriteSearchModal({
   onPick,
 }: Props) {
   const titleId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
 
   useEffect(() => {
@@ -37,10 +36,8 @@ export default function FavoriteSearchModal({
     }
 
     document.addEventListener("keydown", onKey);
-    const t = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => {
       document.removeEventListener("keydown", onKey);
-      window.clearTimeout(t);
     };
   }, [open, onClose]);
 
@@ -82,7 +79,6 @@ export default function FavoriteSearchModal({
             <SearchIcon size={20} strokeWidth={1.75} />
           </span>
           <input
-            ref={inputRef}
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

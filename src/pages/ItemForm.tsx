@@ -165,7 +165,6 @@ export default function ItemForm() {
             value={item.name}
             onChange={(e) => setItem((s) => ({ ...s, name: e.target.value }))}
             required
-            autoFocus
           />
         </label>
         <label>
