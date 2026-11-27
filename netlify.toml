@@ -12,6 +12,8 @@
   targetPort = 5173
   port = 8888
   autoLaunch = false
+  # Avoid picking up dist/_redirects SPA fallback from a prior production build
+  publish = "public"
 
 # API only here — SPA fallback lives in public/_redirects (copied into dist on
 # build). Keeping /* → index.html out of netlify.toml avoids Netlify Dev

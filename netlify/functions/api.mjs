@@ -23,7 +23,7 @@ import {
   updateItem,
   updateWishlist,
 } from "./lib/wishlists.mjs";
-import { initBlobsFromEvent, storageBackend } from "./lib/store.mjs";
+import { blobsRoundtrip, initBlobsFromEvent, storageBackend } from "./lib/store.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Credentials": "true",
@@ -224,9 +224,20 @@ export async function handler(event) {
     }
 
     if (parts[0] === "health" && method === "GET") {
+      const blobs = storageBackend();
+      let persist = null;
+      if (blobs === "netlify") {
+        try {
+          persist = (await blobsRoundtrip()) ? "ok" : "miss";
+        } catch (err) {
+          persist = err instanceof Error ? err.message : "error";
+        }
+      }
       return json(200, {
         ok: true,
-        blobs: storageBackend(),
+        blobs,
+        persist,
+        hasEventBlobs: Boolean(event.blobs),
       });
     }
 
