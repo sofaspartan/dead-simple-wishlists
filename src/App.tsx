@@ -14,11 +14,9 @@ import Landing from "./pages/Landing";
 import ListCreate from "./pages/ListCreate";
 import ListDetail from "./pages/ListDetail";
 import ListEdit from "./pages/ListEdit";
-import ListShare from "./pages/ListShare";
 import ListsHome from "./pages/ListsHome";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
-import Search from "./pages/Search";
 import SharedWishlist from "./pages/SharedWishlist";
 import Signup from "./pages/Signup";
 
@@ -97,14 +95,7 @@ export default function App() {
           </Protected>
         }
       />
-      <Route
-        path="/app/search"
-        element={
-          <Protected>
-            <Search />
-          </Protected>
-        }
-      />
+      <Route path="/app/search" element={<Navigate to="/app" replace />} />
       <Route
         path="/app/favorites"
         element={
@@ -129,14 +120,7 @@ export default function App() {
           </Protected>
         }
       />
-      <Route
-        path="/app/lists/:id/share"
-        element={
-          <Protected>
-            <ListShare />
-          </Protected>
-        }
-      />
+      <Route path="/app/lists/:id/share" element={<LegacyShareRedirect />} />
       <Route
         path="/app/wishes/new"
         element={
@@ -178,6 +162,11 @@ export default function App() {
 }
 
 function LegacyListRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/app/lists/${id}`} replace />;
+}
+
+function LegacyShareRedirect() {
   const { id } = useParams();
   return <Navigate to={`/app/lists/${id}`} replace />;
 }

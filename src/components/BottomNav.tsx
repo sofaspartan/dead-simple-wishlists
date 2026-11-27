@@ -2,14 +2,17 @@ import { Heart, Home, Plus, Search, UserRound } from "lucide-react";
 import { useCallback, useState } from "react";
 import { NavLink, useMatch } from "react-router-dom";
 import AddSheet from "./AddSheet";
+import SearchModal from "./SearchModal";
 
 const iconProps = { size: 22, strokeWidth: 1.75, "aria-hidden": true as const };
 
 export default function BottomNav() {
   const [addOpen, setAddOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const listMatch = useMatch({ path: "/app/lists/:id", end: false });
   const listId = listMatch?.params.id;
   const closeAdd = useCallback(() => setAddOpen(false), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   return (
     <>
@@ -20,15 +23,22 @@ export default function BottomNav() {
           </span>
           Home
         </NavLink>
-        <NavLink
-          to="/app/search"
-          className={({ isActive }) => (isActive ? "tab active" : "tab")}
+        <button
+          type="button"
+          className={`tab${searchOpen ? " active" : ""}`}
+          aria-label="Search"
+          aria-haspopup="dialog"
+          aria-expanded={searchOpen}
+          onClick={() => {
+            setAddOpen(false);
+            setSearchOpen((v) => !v);
+          }}
         >
           <span className="tab-icon">
             <Search {...iconProps} />
           </span>
           Search
-        </NavLink>
+        </button>
 
         <div className="tab-add-slot">
           <button
@@ -37,7 +47,10 @@ export default function BottomNav() {
             aria-label="Add"
             aria-haspopup="dialog"
             aria-expanded={addOpen}
-            onClick={() => setAddOpen((v) => !v)}
+            onClick={() => {
+              setSearchOpen(false);
+              setAddOpen((v) => !v);
+            }}
           >
             <Plus size={28} strokeWidth={2.25} aria-hidden="true" />
           </button>
@@ -64,6 +77,7 @@ export default function BottomNav() {
       </nav>
 
       <AddSheet open={addOpen} onClose={closeAdd} listId={listId} />
+      <SearchModal open={searchOpen} onClose={closeSearch} />
     </>
   );
 }
