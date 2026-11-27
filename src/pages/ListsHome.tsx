@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
 import AddCard from "../components/AddCard";
+import EditWishModal from "../components/EditWishModal";
+import EditWishlistModal from "../components/EditWishlistModal";
 import HomeViewTitle, { type HomeView } from "../components/HomeViewTitle";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
@@ -21,13 +22,14 @@ function readView(): HomeView {
 }
 
 export default function ListsHome() {
-  const navigate = useNavigate();
   const [view, setView] = useState<HomeView>(() => readView());
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [wishes, setWishes] = useState<WishlistItem[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [favTick, setFavTick] = useState(0);
+  const [editListId, setEditListId] = useState<string | null>(null);
+  const [editWishId, setEditWishId] = useState<string | null>(null);
 
   function changeView(next: HomeView) {
     setView(next);
@@ -38,24 +40,33 @@ export default function ListsHome() {
     }
   }
 
+  async function reload() {
+    if (view === "wishlists") {
+      const res = await api.listWishlists();
+      setWishlists(res.wishlists);
+    } else {
+      const [wishesRes, listsRes] = await Promise.all([
+        api.listWishes(view === "unlisted" ? "unlisted" : "all"),
+        api.listWishlists(),
+      ]);
+      setWishes(wishesRes.wishes);
+      setWishlists(listsRes.wishlists);
+    }
+  }
+
   useEffect(() => {
     void (async () => {
       setLoading(true);
       setError("");
       try {
-        if (view === "wishlists") {
-          const res = await api.listWishlists();
-          setWishlists(res.wishlists);
-        } else {
-          const res = await api.listWishes(view === "unlisted" ? "unlisted" : "all");
-          setWishes(res.wishes);
-        }
+        await reload();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload on view change only
   }, [view]);
 
   async function onDeleteList(id: string, title: string) {
@@ -85,19 +96,6 @@ export default function ListsHome() {
       .filter(Boolean);
     return titles.length ? titles.join(", ") : `${ids.length} wishlist${ids.length === 1 ? "" : "s"}`;
   }
-
-  // Load wishlist titles for wish meta when in wish views
-  useEffect(() => {
-    if (view === "wishlists") return;
-    void (async () => {
-      try {
-        const res = await api.listWishlists();
-        setWishlists(res.wishlists);
-      } catch {
-        /* meta only */
-      }
-    })();
-  }, [view]);
 
   return (
     <Screen title={<HomeViewTitle value={view} onChange={changeView} />} tabs largeTitle>
@@ -132,7 +130,7 @@ export default function ListsHome() {
                     "aria-label": `Actions for ${w.title}`,
                     editLabel: "Edit wishlist",
                     deleteLabel: "Delete wishlist",
-                    onEdit: () => navigate(`/app/lists/${w.id}/edit`),
+                    onEdit: () => setEditListId(w.id),
                     onDelete: () => void onDeleteList(w.id, w.title),
                     extra: {
                       label: favorited ? "Unfavorite wishlist" : "Favorite wishlist",
@@ -171,7 +169,7 @@ export default function ListsHome() {
                   "aria-label": `Actions for ${w.name}`,
                   editLabel: "Edit wish",
                   deleteLabel: "Delete wish",
-                  onEdit: () => navigate(`/app/wishes/${w.id}/edit`),
+                  onEdit: () => setEditWishId(w.id),
                   onDelete: () => void onDeleteWish(w.id, w.name),
                 }}
               />
@@ -185,6 +183,38 @@ export default function ListsHome() {
           </li>
         </ul>
       )}
+
+      <EditWishlistModal
+        open={Boolean(editListId)}
+        wishlistId={editListId}
+        onClose={() => setEditListId(null)}
+        onSaved={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+        onDeleted={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+      />
+
+      <EditWishModal
+        open={Boolean(editWishId)}
+        wishId={editWishId}
+        onClose={() => setEditWishId(null)}
+        onSaved={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+        onDeleted={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+      />
     </Screen>
   );
 }

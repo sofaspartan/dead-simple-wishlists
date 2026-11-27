@@ -484,6 +484,66 @@ textarea {
   cursor: not-allowed;
 }
 
+/* —— Edit wish / wishlist modal tabs —— */
+.edit-modal-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.25rem;
+  margin-bottom: 0.7rem;
+  background: var(--surface);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.edit-modal-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  min-height: var(--tap);
+  padding: 0.55rem 0.4rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+}
+
+.edit-modal-tab:hover {
+  color: var(--text);
+}
+
+.edit-modal-tab.active {
+  background: var(--elevated);
+  color: var(--accent-highlight);
+}
+
+.edit-modal-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  gap: 0.75rem;
+}
+
+.edit-modal-actions {
+  display: grid;
+  gap: 0.55rem;
+  flex-shrink: 0;
+  padding-top: 0.15rem;
+}
+
+.edit-modal-hint {
+  margin: 0 0 0.35rem;
+  font-weight: 400;
+}
+
+.edit-modal .banner {
+  margin-bottom: 0.75rem;
+}
+
 /* —— Wish full-screen detail —— */
 .wish-detail {
   display: flex;

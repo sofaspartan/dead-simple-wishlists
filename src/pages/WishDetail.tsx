@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
 import AddToWishlistModal from "../components/AddToWishlistModal";
+import EditWishModal from "../components/EditWishModal";
 import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
 import { WishDetailSkeleton } from "../components/Skeleton";
@@ -26,6 +27,7 @@ export default function WishDetail() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const backTo = useMemo(() => {
     if (state?.backTo) return state.backTo;
@@ -33,17 +35,21 @@ export default function WishDetail() {
     return "/app";
   }, [state?.backTo, fromListId]);
 
+  async function reload() {
+    const [wishRes, listsRes] = await Promise.all([
+      api.getWish(wishId),
+      api.listWishlists(),
+    ]);
+    setWish(wishRes.wish);
+    setWishlists(listsRes.wishlists);
+  }
+
   useEffect(() => {
     void (async () => {
       setLoading(true);
       setError("");
       try {
-        const [wishRes, listsRes] = await Promise.all([
-          api.getWish(wishId),
-          api.listWishlists(),
-        ]);
-        setWish(wishRes.wish);
-        setWishlists(listsRes.wishlists);
+        await reload();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
         setWish(null);
@@ -51,6 +57,7 @@ export default function WishDetail() {
         setLoading(false);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reload on wishId change only
   }, [wishId]);
 
   const listIds = wish?.wishlistIds || [];
@@ -130,7 +137,7 @@ export default function WishDetail() {
           aria-label={`Actions for ${wish.name}`}
           editLabel="Edit wish"
           deleteLabel="Delete wish"
-          onEdit={() => navigate(`/app/wishes/${wish.id}/edit`)}
+          onEdit={() => setEditOpen(true)}
           onDelete={() => void onDelete()}
           extras={
             isUnlisted
@@ -201,6 +208,18 @@ export default function WishDetail() {
         wishlists={wishlists}
         selectedIds={listIds}
         onConfirm={(ids) => void onAddToWishlists(ids)}
+      />
+
+      <EditWishModal
+        open={editOpen}
+        wishId={wish.id}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => {
+          void reload().catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to reload");
+          });
+        }}
+        onDeleted={() => navigate(backTo, { replace: true })}
       />
     </Screen>
   );
