@@ -49,7 +49,6 @@ export default function AvatarCropDialog({ open, file, onCancel, onSave, busy }:
 
   function baseScale() {
     if (!natural.w || !natural.h) return 1;
-    // Cover the square crop viewport (280px css)
     const view = 280;
     return Math.max(view / natural.w, view / natural.h);
   }
@@ -120,50 +119,52 @@ export default function AvatarCropDialog({ open, file, onCancel, onSave, busy }:
     <div className="crop-root" role="presentation">
       <button type="button" className="crop-backdrop" aria-label="Close" onClick={onCancel} />
       <div className="crop-sheet" role="dialog" aria-modal="true" aria-labelledby="crop-title">
-        <h2 id="crop-title" className="crop-title">
-          Crop avatar
-        </h2>
-        <p className="muted crop-hint">Drag to reposition. Pinch isn’t needed — use zoom.</p>
+        <div className="crop-sheet-scroll">
+          <h2 id="crop-title" className="crop-title">
+            Crop avatar
+          </h2>
+          <p className="muted crop-hint">Drag to reposition. Pinch isn’t needed — use zoom.</p>
 
-        <div
-          className="crop-viewport"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-        >
-          {natural.w ? (
-            <img
-              ref={imgRef}
-              src={src}
-              alt=""
-              className="crop-image"
-              draggable={false}
-              style={{
-                width: drawW,
-                height: drawH,
-                transform: `translate(${offset.x}px, ${offset.y}px)`,
-              }}
+          <div
+            className="crop-viewport"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
+            {natural.w ? (
+              <img
+                ref={imgRef}
+                src={src}
+                alt=""
+                className="crop-image"
+                draggable={false}
+                style={{
+                  width: drawW,
+                  height: drawH,
+                  transform: `translate(${offset.x}px, ${offset.y}px)`,
+                }}
+              />
+            ) : (
+              <img src={src} alt="" className="crop-image-probe" onLoad={onImgLoad} />
+            )}
+            <div className="crop-mask" aria-hidden="true" />
+          </div>
+
+          <label className="crop-zoom">
+            Zoom
+            <input
+              type="range"
+              min={1}
+              max={3}
+              step={0.01}
+              value={zoom}
+              onChange={(e) => setZoom(Number(e.target.value))}
             />
-          ) : (
-            <img src={src} alt="" className="crop-image-probe" onLoad={onImgLoad} />
-          )}
-          <div className="crop-mask" aria-hidden="true" />
+          </label>
+
+          {error && <p className="error">{error}</p>}
         </div>
-
-        <label className="crop-zoom">
-          Zoom
-          <input
-            type="range"
-            min={1}
-            max={3}
-            step={0.01}
-            value={zoom}
-            onChange={(e) => setZoom(Number(e.target.value))}
-          />
-        </label>
-
-        {error && <p className="error">{error}</p>}
 
         <div className="crop-actions">
           <button type="button" className="btn btn-ghost" onClick={onCancel} disabled={busy}>
