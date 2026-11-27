@@ -108,7 +108,20 @@ const relogin = await call("POST", "/auth/login", {
   body: { username: user, password: "newpassword99" },
 });
 
-console.log("12. delete wishlist");
+console.log("12. update display name");
+const renamed = await call("PATCH", "/auth/me", {
+  cookie: relogin.cookie,
+  body: { displayName: "Smoke Tester" },
+});
+if (renamed.data.user.displayName !== "Smoke Tester") {
+  throw new Error("display name not updated");
+}
+const meAfter = await call("GET", "/auth/me", { cookie: relogin.cookie });
+if (meAfter.data.user.displayName !== "Smoke Tester") {
+  throw new Error("display name not persisted");
+}
+
+console.log("13. delete wishlist");
 await call("DELETE", `/wishlists/${listId}`, { cookie: relogin.cookie });
 
 console.log("\nAll smoke checks passed.");

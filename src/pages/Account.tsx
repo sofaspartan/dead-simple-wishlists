@@ -1,5 +1,5 @@
-import { ChevronRight, KeyRound, LogOut, Pencil } from "lucide-react";
-import { useRef, useState, type ChangeEvent } from "react";
+import { Check, ChevronRight, KeyRound, LogOut, Pencil, X } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
@@ -10,10 +10,57 @@ import Screen from "../components/Screen";
 export default function Account() {
   const { user, logout, setUser } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [editingName, setEditingName] = useState(false);
+  const [displayNameDraft, setDisplayNameDraft] = useState("");
+  const [savingName, setSavingName] = useState(false);
+
+  useEffect(() => {
+    if (editingName) {
+      nameInputRef.current?.focus();
+      nameInputRef.current?.select();
+    }
+  }, [editingName]);
+
+  function startEditName() {
+    setDisplayNameDraft(user?.displayName || user?.username || "");
+    setError("");
+    setEditingName(true);
+  }
+
+  function cancelEditName() {
+    if (savingName) return;
+    setEditingName(false);
+    setDisplayNameDraft("");
+  }
+
+  async function onSaveName(e?: FormEvent) {
+    e?.preventDefault();
+    const next = displayNameDraft.trim();
+    if (!next) {
+      setError("Display name is required");
+      return;
+    }
+    if (next === (user?.displayName || "")) {
+      setEditingName(false);
+      return;
+    }
+    setSavingName(true);
+    setError("");
+    try {
+      const res = await api.updateDisplayName(next);
+      setUser(res.user);
+      setEditingName(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save display name");
+    } finally {
+      setSavingName(false);
+    }
+  }
 
   function onPickFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -69,7 +116,59 @@ export default function Account() {
           />
         </div>
         <div className="account-profile-text">
-          <p className="account-name">@{user?.username}</p>
+          {editingName ? (
+            <form className="account-name-edit" onSubmit={(e) => void onSaveName(e)}>
+              <label className="sr-only" htmlFor="account-display-name">
+                Display name
+              </label>
+              <input
+                id="account-display-name"
+                ref={nameInputRef}
+                value={displayNameDraft}
+                onChange={(e) => setDisplayNameDraft(e.target.value)}
+                maxLength={64}
+                disabled={savingName}
+                autoComplete="nickname"
+                aria-label="Display name"
+              />
+              <div className="account-name-actions">
+                <button
+                  type="submit"
+                  className="btn btn-small"
+                  disabled={savingName}
+                  aria-label="Save display name"
+                >
+                  <Check size={16} strokeWidth={2.25} aria-hidden="true" />
+                  {savingName ? "Saving…" : "Save"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-small"
+                  disabled={savingName}
+                  onClick={cancelEditName}
+                  aria-label="Cancel"
+                >
+                  <X size={16} strokeWidth={2.25} aria-hidden="true" />
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="account-name-row">
+              <p className="account-display-name">
+                {user?.displayName || user?.username}
+              </p>
+              <button
+                type="button"
+                className="account-name-edit-btn"
+                aria-label="Edit display name"
+                onClick={startEditName}
+              >
+                <Pencil size={16} strokeWidth={2.25} aria-hidden="true" />
+              </button>
+            </div>
+          )}
+          <p className="account-handle">@{user?.username}</p>
           <p className="muted">
             {user?.recoveryCodesRemaining ?? 0} recovery code
             {(user?.recoveryCodesRemaining ?? 0) === 1 ? "" : "s"} remaining

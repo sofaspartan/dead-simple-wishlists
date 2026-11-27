@@ -34,7 +34,7 @@ export default function MediaCard({
     <img src={imageUrl} alt="" className="media-card-img" loading="lazy" />
   ) : (
     <span className="media-card-placeholder" aria-hidden="true">
-      <Placeholder size={40} strokeWidth={1.5} />
+      <Placeholder size={40} strokeWidth={1.75} />
     </span>
   );
 

@@ -10,6 +10,7 @@ import {
   resetPasswordWithCode,
   setSessionCookie,
   setUserAvatar,
+  updateDisplayName,
   COOKIE_NAME,
 } from "./lib/auth.mjs";
 import {
@@ -143,6 +144,14 @@ export async function handler(event) {
         const user = await getUserFromRequest(event);
         if (!user) return json(401, { error: "Not signed in" });
         return json(200, { user });
+      }
+
+      if (parts[1] === "me" && method === "PATCH") {
+        const user = await getUserFromRequest(event);
+        if (!user) return json(401, { error: "Not signed in" });
+        requireFields(body, ["displayName"]);
+        const updated = await updateDisplayName(user.id, body.displayName);
+        return json(200, { user: updated });
       }
 
       if (parts[1] === "avatar" && method === "POST") {
