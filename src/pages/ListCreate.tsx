@@ -25,7 +25,7 @@ export default function ListCreate() {
   }
 
   return (
-    <Screen title="New list" backTo="/app" backLabel="Lists" largeTitle>
+    <Screen title="New list" backTo="/app" backLabel="Home" largeTitle>
       <form className="form-grid" onSubmit={onSubmit}>
         <label>
           Title

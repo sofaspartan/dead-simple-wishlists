@@ -1,9 +1,11 @@
-import { Plus, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import MediaCard from "../components/MediaCard";
 import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
+import { isFavorite, toggleFavorite } from "../lib/favorites";
 
 export default function ListDetail() {
   const { id = "" } = useParams();
@@ -11,6 +13,7 @@ export default function ListDetail() {
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [favTick, setFavTick] = useState(0);
 
   useEffect(() => {
     void (async () => {
@@ -36,9 +39,19 @@ export default function ListDetail() {
     }
   }
 
+  async function onDeleteList(title: string) {
+    if (!confirm(`Delete “${title}”?`)) return;
+    try {
+      await api.deleteWishlist(id);
+      navigate("/app", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete");
+    }
+  }
+
   if (loading) {
     return (
-      <Screen title="List" backTo="/app" backLabel="Lists" largeTitle={false}>
+      <Screen title="List" backTo="/app" backLabel="Home" tabs largeTitle={false}>
         <p className="muted">Loading…</p>
       </Screen>
     );
@@ -46,23 +59,42 @@ export default function ListDetail() {
 
   if (!wishlist) {
     return (
-      <Screen title="List" backTo="/app" backLabel="Lists" largeTitle={false}>
+      <Screen title="List" backTo="/app" backLabel="Home" tabs largeTitle={false}>
         <p className="error">{error || "Not found"}</p>
       </Screen>
     );
   }
 
+  void favTick;
+  const favorited = isFavorite(id);
+
   return (
-    <Screen title={wishlist.title} backTo="/app" backLabel="Lists" largeTitle>
+    <Screen
+      title={wishlist.title}
+      backTo="/app"
+      backLabel="Home"
+      tabs
+      largeTitle
+      right={
+        <MoreMenu
+          aria-label={`Actions for ${wishlist.title}`}
+          onEdit={() => navigate(`/app/lists/${id}/edit`)}
+          onDelete={() => void onDeleteList(wishlist.title)}
+          extra={{
+            label: favorited ? "Unfavorite" : "Favorite",
+            onSelect: () => {
+              toggleFavorite(id);
+              setFavTick((n) => n + 1);
+            },
+          }}
+        />
+      }
+    >
       {wishlist.description ? (
         <p className="muted lead lead-center">{wishlist.description}</p>
       ) : null}
 
       <div className="action-strip action-strip-center">
-        <Link className="btn btn-small" to={`/app/lists/${id}/items/new`}>
-          <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
-          Add
-        </Link>
         <Link className="btn btn-ghost btn-small" to={`/app/lists/${id}/share`}>
           <Share2 size={16} strokeWidth={2} aria-hidden="true" />
           Share
@@ -74,31 +106,30 @@ export default function ListDetail() {
       {wishlist.items.length === 0 ? (
         <div className="empty-state">
           <p className="empty-title">No items</p>
-          <p className="muted">Add gifts your friends can claim.</p>
+          <p className="muted">Tap + below to add a gift.</p>
           <Link className="btn" to={`/app/lists/${id}/items/new`}>
-            <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
             Add first item
           </Link>
         </div>
       ) : (
-        <ul className="nav-list">
+        <ul className="card-grid">
           {wishlist.items.map((it) => (
             <li key={it.id}>
-              <div className="nav-row">
-                <Link className="nav-row-main" to={`/app/lists/${id}/items/${it.id}`}>
-                  <span className="nav-row-title">{it.name}</span>
-                  <span className="nav-row-meta">
-                    {[it.price, it.claimed ? `Claimed · ${it.claimedBy || "Anonymous"}` : null]
-                      .filter(Boolean)
-                      .join(" · ") || "Tap to edit"}
-                  </span>
-                </Link>
-                <MoreMenu
-                  aria-label={`Actions for ${it.name}`}
-                  onEdit={() => navigate(`/app/lists/${id}/items/${it.id}`)}
-                  onDelete={() => void onDeleteItem(it.id, it.name)}
-                />
-              </div>
+              <MediaCard
+                to={`/app/lists/${id}/items/${it.id}`}
+                title={it.name}
+                variant="item"
+                meta={
+                  [it.price, it.claimed ? `Claimed · ${it.claimedBy || "Anonymous"}` : null]
+                    .filter(Boolean)
+                    .join(" · ") || undefined
+                }
+                menu={{
+                  "aria-label": `Actions for ${it.name}`,
+                  onEdit: () => navigate(`/app/lists/${id}/items/${it.id}`),
+                  onDelete: () => void onDeleteItem(it.id, it.name),
+                }}
+              />
             </li>
           ))}
         </ul>

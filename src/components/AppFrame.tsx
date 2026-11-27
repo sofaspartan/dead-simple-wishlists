@@ -2,7 +2,7 @@ import BottomNav from "./BottomNav";
 
 type Props = {
   children: React.ReactNode;
-  /** Show bottom tab bar (Lists / Account) */
+  /** Show bottom tab bar (Home / Search / Add / Favorites / Account) */
   tabs?: boolean;
   className?: string;
 };
