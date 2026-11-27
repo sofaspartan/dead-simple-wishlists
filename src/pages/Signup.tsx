@@ -1,3 +1,4 @@
+import { ArrowRight, Copy, UserPlus } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { api } from "../api";
@@ -50,6 +51,7 @@ export default function Signup() {
           type="button"
           onClick={() => void navigator.clipboard.writeText(recoveryCodes.join("\n"))}
         >
+          <Copy size={18} strokeWidth={2} aria-hidden="true" />
           Copy codes
         </button>
         <label className="check-row">
@@ -67,6 +69,7 @@ export default function Signup() {
           onClick={() => setDone(true)}
         >
           Continue to my lists
+          <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />
         </button>
       </Screen>
     );
@@ -102,6 +105,7 @@ export default function Signup() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy}>
+          <UserPlus size={18} strokeWidth={2} aria-hidden="true" />
           {busy ? "Creating…" : "Create account"}
         </button>
       </form>

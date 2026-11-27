@@ -1,3 +1,4 @@
+import { ArrowRight, LogIn } from "lucide-react";
 import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import AppFrame from "../components/AppFrame";
@@ -18,8 +19,10 @@ export default function Landing() {
         <div className="hero-cta">
           <Link className="btn btn-block" to="/signup">
             Get started
+            <ArrowRight size={18} strokeWidth={2.25} aria-hidden="true" />
           </Link>
           <Link className="btn btn-ghost btn-block" to="/login">
+            <LogIn size={18} strokeWidth={2} aria-hidden="true" />
             Log in
           </Link>
         </div>

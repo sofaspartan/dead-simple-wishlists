@@ -1,3 +1,4 @@
+import { LogIn } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { api } from "../api";
@@ -53,6 +54,7 @@ export default function Login() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy}>
+          <LogIn size={18} strokeWidth={2} aria-hidden="true" />
           {busy ? "Signing in…" : "Log in"}
         </button>
       </form>

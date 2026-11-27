@@ -1,3 +1,4 @@
+import { ChevronRight, Pencil, Plus, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
@@ -47,6 +48,7 @@ export default function ListDetail() {
       largeTitle
       right={
         <Link to={`/app/lists/${id}/edit`} className="text-action">
+          <Pencil size={16} strokeWidth={2} aria-hidden="true" />
           Edit
         </Link>
       }
@@ -57,9 +59,11 @@ export default function ListDetail() {
 
       <div className="action-strip">
         <Link className="btn btn-ghost btn-small" to={`/app/lists/${id}/share`}>
+          <Share2 size={16} strokeWidth={2} aria-hidden="true" />
           Share
         </Link>
         <Link className="btn btn-small" to={`/app/lists/${id}/items/new`}>
+          <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
           Add item
         </Link>
       </div>
@@ -71,6 +75,7 @@ export default function ListDetail() {
           <p className="empty-title">No items</p>
           <p className="muted">Add gifts your friends can claim.</p>
           <Link className="btn" to={`/app/lists/${id}/items/new`}>
+            <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
             Add first item
           </Link>
         </div>
@@ -88,7 +93,7 @@ export default function ListDetail() {
                   </span>
                 </div>
                 <span className="chevron" aria-hidden="true">
-                  ›
+                  <ChevronRight size={20} strokeWidth={1.75} />
                 </span>
               </Link>
             </li>

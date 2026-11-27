@@ -1,3 +1,4 @@
+import { ChevronRight, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type Wishlist } from "../api";
@@ -29,6 +30,7 @@ export default function ListsHome() {
       largeTitle
       right={
         <Link to="/app/new" className="text-action">
+          <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
           New
         </Link>
       }
@@ -41,6 +43,7 @@ export default function ListsHome() {
           <p className="empty-title">No lists yet</p>
           <p className="muted">Create a wishlist, add gifts, share one link.</p>
           <Link className="btn" to="/app/new">
+            <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
             Create a list
           </Link>
         </div>
@@ -59,7 +62,7 @@ export default function ListsHome() {
                   </span>
                 </div>
                 <span className="chevron" aria-hidden="true">
-                  ›
+                  <ChevronRight size={20} strokeWidth={1.75} />
                 </span>
               </Link>
             </li>

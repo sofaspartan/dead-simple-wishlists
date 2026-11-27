@@ -1,3 +1,4 @@
+import { Plus, Save, Trash2, Undo2 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
@@ -105,6 +106,7 @@ export default function ItemForm() {
         <div className="banner">
           Claimed by {claimedBy || "Anonymous"}
           <button className="text-action" type="button" onClick={() => void onUnclaim()}>
+            <Undo2 size={16} strokeWidth={2} aria-hidden="true" />
             Unclaim
           </button>
         </div>
@@ -147,6 +149,11 @@ export default function ItemForm() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-block" type="submit" disabled={busy}>
+          {isNew ? (
+            <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
+          ) : (
+            <Save size={18} strokeWidth={2} aria-hidden="true" />
+          )}
           {busy ? "Saving…" : isNew ? "Add item" : "Save"}
         </button>
       </form>
@@ -157,6 +164,7 @@ export default function ItemForm() {
           type="button"
           onClick={() => void onDelete()}
         >
+          <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
           Delete item
         </button>
       ) : null}
