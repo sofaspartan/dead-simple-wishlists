@@ -42,7 +42,12 @@
   box-sizing: border-box;
 }
 
-html,
+html {
+  /* Prefer layout viewport; keyboard overlays instead of resizing (see viewport meta). */
+  height: 100%;
+  overflow: hidden;
+}
+
 body,
 #root {
   min-height: 100%;
@@ -57,6 +62,10 @@ body {
   background: var(--bg0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Keep page from reflowing/zooming when mobile keyboards open. */
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 a {
@@ -74,18 +83,28 @@ textarea {
 .phone-frame {
   width: min(100%, var(--frame-max));
   margin: 0 auto;
-  min-height: 100dvh;
+  /* svh stays stable when the virtual keyboard opens (unlike dvh). */
+  min-height: 100%;
+  min-height: 100svh;
+  height: 100%;
+  height: 100svh;
   display: flex;
   flex-direction: column;
   position: relative;
   background: var(--bg0);
+  overflow: hidden;
 }
 
 .phone-scroll {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   padding: 0.65rem 1.1rem calc(1.5rem + var(--safe-bottom));
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   animation: rise 0.35s ease both;
 }
 
@@ -280,17 +299,18 @@ textarea {
   position: relative;
   z-index: 1;
   width: min(100%, calc(var(--frame-max) - 1.4rem));
-  max-height: min(78dvh, 36rem);
+  max-height: min(78svh, 36rem);
   display: flex;
   flex-direction: column;
-  background: var(--surface-raised);
+  /* Surface modal so elevated inputs/rows read clearly. */
+  background: var(--surface);
   border-radius: 20px;
   padding: 0.85rem 0.85rem 0.9rem;
   animation: rise 0.2s ease both;
 }
 
 .app-modal-tall {
-  max-height: min(82dvh, 40rem);
+  max-height: min(82svh, 40rem);
 }
 
 .app-modal-header {
@@ -313,7 +333,7 @@ textarea {
 .app-modal-close {
   appearance: none;
   border: 0;
-  background: var(--surface);
+  background: var(--elevated);
   color: var(--ink);
   width: var(--tap);
   height: var(--tap);
@@ -354,7 +374,7 @@ textarea {
   border: 0;
   width: 100%;
   text-align: left;
-  background: var(--surface);
+  background: var(--elevated);
   color: var(--ink);
   border-radius: var(--radius);
   padding: 0.85rem 1rem;
@@ -492,7 +512,7 @@ textarea {
   width: 100%;
   padding: 0.25rem;
   margin-bottom: 0.7rem;
-  background: var(--surface);
+  background: var(--bg);
   border-radius: 14px;
   flex-shrink: 0;
 }
@@ -542,6 +562,22 @@ textarea {
 
 .edit-modal .banner {
   margin-bottom: 0.75rem;
+}
+
+/* Elevated fields on surface modal — visible without purple focus rings. */
+.edit-modal input:not([type="checkbox"]),
+.edit-modal textarea {
+  background: var(--elevated);
+}
+
+.edit-modal input:not([type="checkbox"]):focus,
+.edit-modal textarea:focus,
+.edit-modal input:not([type="checkbox"]):focus-visible,
+.edit-modal textarea:focus-visible {
+  background: var(--elevated);
+  outline: 2px solid var(--border);
+  outline-offset: 0;
+  box-shadow: none;
 }
 
 /* —— Wish full-screen detail —— */
@@ -657,7 +693,7 @@ textarea {
   padding: 0.85rem 1rem;
   border: 0;
   border-radius: var(--radius);
-  background: var(--surface);
+  background: var(--elevated);
   display: grid;
   gap: 0.35rem;
 }
@@ -1080,10 +1116,11 @@ select.select-field:focus {
   box-shadow: none;
 }
 
+/* Non-purple focus ring — border token only (Midnight Violet flat). */
 input:focus-visible,
 textarea:focus-visible,
 select.select-field:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--border);
   outline-offset: 0;
 }
 
@@ -1124,7 +1161,7 @@ select.select-field:focus-visible {
 }
 
 .search-field:focus-within {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--border);
   outline-offset: 0;
 }
 
@@ -1380,10 +1417,10 @@ select.select-field:focus-visible {
   position: relative;
   z-index: 1;
   width: min(100%, calc(var(--frame-max) - 1.4rem));
-  max-height: min(70dvh, 28rem);
+  max-height: min(70svh, 28rem);
   display: flex;
   flex-direction: column;
-  background: var(--surface-raised);
+  background: var(--surface);
   border-radius: 20px;
   padding: 0.85rem 0.85rem 0.75rem;
   animation: rise 0.2s ease both;
@@ -1408,7 +1445,7 @@ select.select-field:focus-visible {
 .fav-search-close {
   appearance: none;
   border: 0;
-  background: var(--surface);
+  background: var(--elevated);
   color: var(--ink);
   width: var(--tap);
   height: var(--tap);
@@ -2174,7 +2211,7 @@ select.select-field:focus-visible {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  max-height: min(85dvh, calc(100% - 0.5rem));
+  max-height: min(85svh, calc(100% - 0.5rem));
   overflow: hidden;
   animation: sheet-up 0.22s ease both;
 }
@@ -2403,12 +2440,18 @@ select.select-field:focus-visible {
 }
 
 @media (min-width: 720px) {
+  html,
+  body {
+    overflow: auto;
+  }
+
   body {
     background: color-mix(in srgb, var(--bg) 82%, #000);
   }
 
   .phone-frame {
-    min-height: calc(100dvh - 2rem);
+    min-height: calc(100svh - 2rem);
+    height: calc(100svh - 2rem);
     margin: 1rem auto;
     border-radius: 28px;
     background: var(--bg0);
