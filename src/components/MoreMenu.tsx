@@ -19,8 +19,7 @@ export type MoreMenuProps = {
 
 const iconProps = {
   size: 20,
-  strokeWidth: 1.75,
-  fill: "currentColor",
+  strokeWidth: 2,
   "aria-hidden": true as const,
 };
 
@@ -90,9 +89,7 @@ export default function MoreMenu({
                   onEdit();
                 }}
               >
-                <span className="more-menu-item-icon">
-                  <Pencil {...iconProps} />
-                </span>
+                <Pencil {...iconProps} />
                 {editLabel}
               </button>
               {extra ? (
@@ -107,9 +104,7 @@ export default function MoreMenu({
                     extra.onSelect();
                   }}
                 >
-                  <span className="more-menu-item-icon">
-                    <Heart {...iconProps} />
-                  </span>
+                  <Heart {...iconProps} />
                   {extra.label}
                 </button>
               ) : null}
@@ -124,9 +119,7 @@ export default function MoreMenu({
                   onDelete();
                 }}
               >
-                <span className="more-menu-item-icon more-menu-item-icon-danger">
-                  <Trash2 {...iconProps} />
-                </span>
+                <Trash2 {...iconProps} />
                 {deleteLabel}
               </button>
             </div>

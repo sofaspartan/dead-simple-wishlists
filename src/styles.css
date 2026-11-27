@@ -989,7 +989,7 @@ select.select-field:focus-visible {
   color: var(--ink);
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   width: 100%;
   text-align: left;
   padding: 0.95rem 1rem;
@@ -1005,28 +1005,12 @@ select.select-field:focus-visible {
   background: var(--surface-press);
 }
 
-.more-menu-item-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 22%, var(--elevated));
-  color: var(--accent-highlight);
+.more-menu-item > svg {
   flex-shrink: 0;
-}
-
-.more-menu-item-icon svg {
   color: inherit;
-  fill: currentColor;
+  fill: none;
   stroke: currentColor;
   opacity: 1;
-}
-
-.more-menu-item-icon-danger {
-  background: color-mix(in srgb, var(--error) 18%, var(--elevated));
-  color: var(--danger);
 }
 
 .more-menu-item-danger {
