@@ -25,6 +25,7 @@ export function initBlobsFromEvent(event) {
     const siteID = headers["x-nf-site-id"] || headers["X-Nf-Site-Id"];
     const deployID = headers["x-nf-deploy-id"] || headers["X-Nf-Deploy-Id"];
     const uncachedEdgeURL =
+      data.url_uncached ||
       data.uncached_edge_url ||
       data.uncachedEdgeURL ||
       data.uncached_url ||
