@@ -37,16 +37,16 @@ export default function ListsHome() {
   }
 
   return (
-    <Screen title="Home" tabs largeTitle>
+    <Screen title="Wishlists" tabs largeTitle>
       {error && <p className="error">{error}</p>}
       {loading ? (
         <p className="muted">Loading…</p>
       ) : wishlists.length === 0 ? (
         <div className="empty-state">
-          <p className="empty-title">No lists yet</p>
-          <p className="muted">Tap + below to create a wishlist.</p>
+          <p className="empty-title">No wishlists yet</p>
+          <p className="muted">Tap + below to create a wishlist or add a wish.</p>
           <Link className="btn" to="/app/new">
-            Create a list
+            Create a wishlist
           </Link>
         </div>
       ) : (
@@ -62,7 +62,7 @@ export default function ListsHome() {
                   variant="list"
                   meta={
                     [
-                      `${w.items.length} item${w.items.length === 1 ? "" : "s"}`,
+                      `${w.items.length} wish${w.items.length === 1 ? "" : "es"}`,
                       w.items.some((i) => i.claimed)
                         ? `${w.items.filter((i) => i.claimed).length} claimed`
                         : null,

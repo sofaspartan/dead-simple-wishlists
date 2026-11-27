@@ -1,47 +1,72 @@
 import { Plus, Save, Trash2, Undo2 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { api } from "../api";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { api, type Wishlist } from "../api";
 import Screen from "../components/Screen";
 
 const empty = { name: "", url: "", notes: "", price: "" };
+const NEW_WISHLIST = "__new__";
 
 export default function ItemForm() {
-  const { id: listId = "", itemId } = useParams();
+  const { id: routeListId = "", itemId } = useParams();
+  const [searchParams] = useSearchParams();
   const isNew = !itemId || itemId === "new";
   const navigate = useNavigate();
+
+  const prefListId = routeListId || searchParams.get("wishlist") || "";
+
   const [item, setItem] = useState(empty);
+  const [wishlists, setWishlists] = useState<Wishlist[]>([]);
+  const [targetId, setTargetId] = useState(prefListId || NEW_WISHLIST);
+  const [newWishlistTitle, setNewWishlistTitle] = useState("");
   const [claimed, setClaimed] = useState(false);
   const [claimedBy, setClaimedBy] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
+  const backTo = useMemo(() => {
+    if (routeListId) return `/app/lists/${routeListId}`;
+    if (prefListId) return `/app/lists/${prefListId}`;
+    return "/app";
+  }, [routeListId, prefListId]);
+
   useEffect(() => {
-    if (isNew) return;
     void (async () => {
       try {
-        const res = await api.getWishlist(listId);
-        const found = res.wishlist.items.find((i) => i.id === itemId);
-        if (!found) {
-          setError("Item not found");
-          return;
+        if (isNew) {
+          const res = await api.listWishlists();
+          setWishlists(res.wishlists);
+          if (prefListId && res.wishlists.some((w) => w.id === prefListId)) {
+            setTargetId(prefListId);
+          } else if (res.wishlists.length > 0 && !prefListId) {
+            setTargetId(res.wishlists[0].id);
+          } else if (!prefListId) {
+            setTargetId(NEW_WISHLIST);
+          }
+        } else {
+          const res = await api.getWishlist(routeListId);
+          const found = res.wishlist.items.find((i) => i.id === itemId);
+          if (!found) {
+            setError("Wish not found");
+            return;
+          }
+          setItem({
+            name: found.name,
+            url: found.url,
+            notes: found.notes,
+            price: found.price,
+          });
+          setClaimed(found.claimed);
+          setClaimedBy(found.claimedBy);
         }
-        setItem({
-          name: found.name,
-          url: found.url,
-          notes: found.notes,
-          price: found.price,
-        });
-        setClaimed(found.claimed);
-        setClaimedBy(found.claimedBy);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load");
       } finally {
         setLoading(false);
       }
     })();
-  }, [isNew, listId, itemId]);
+  }, [isNew, routeListId, itemId, prefListId]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -49,11 +74,18 @@ export default function ItemForm() {
     setError("");
     try {
       if (isNew) {
+        let listId = targetId;
+        if (targetId === NEW_WISHLIST) {
+          const title = newWishlistTitle.trim() || item.name.trim() || "Wishlist";
+          const created = await api.createWishlist(title);
+          listId = created.wishlist.id;
+        }
         await api.addItem(listId, item);
+        navigate(`/app/lists/${listId}`, { replace: true });
       } else {
-        await api.updateItem(listId, itemId!, item);
+        await api.updateItem(routeListId, itemId!, item);
+        navigate(`/app/lists/${routeListId}`, { replace: true });
       }
-      navigate(`/app/lists/${listId}`, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
       setBusy(false);
@@ -62,16 +94,16 @@ export default function ItemForm() {
 
   async function onDelete() {
     if (!itemId || isNew) return;
-    if (!confirm("Delete this item?")) return;
-    await api.deleteItem(listId, itemId);
-    navigate(`/app/lists/${listId}`, { replace: true });
+    if (!confirm("Delete this wish?")) return;
+    await api.deleteItem(routeListId, itemId);
+    navigate(`/app/lists/${routeListId}`, { replace: true });
   }
 
   async function onUnclaim() {
     if (!itemId || isNew) return;
     setBusy(true);
     try {
-      const res = await api.unclaimItem(listId, itemId);
+      const res = await api.unclaimItem(routeListId, itemId);
       const found = res.wishlist.items.find((i) => i.id === itemId);
       setClaimed(Boolean(found?.claimed));
       setClaimedBy(found?.claimedBy ?? null);
@@ -82,26 +114,19 @@ export default function ItemForm() {
     }
   }
 
+  const title = isNew ? "Add wish" : "Edit wish";
+  const canSubmit = item.name.trim().length > 0;
+
   if (loading) {
     return (
-      <Screen
-        title={isNew ? "Add item" : "Edit item"}
-        backTo={`/app/lists/${listId}`}
-        backLabel="List"
-        largeTitle={false}
-      >
+      <Screen title={title} backTo={backTo} backLabel="Back" largeTitle={false}>
         <p className="muted">Loading…</p>
       </Screen>
     );
   }
 
   return (
-    <Screen
-      title={isNew ? "Add item" : "Edit item"}
-      backTo={`/app/lists/${listId}`}
-      backLabel="List"
-      largeTitle
-    >
+    <Screen title={title} backTo={backTo} backLabel="Back" largeTitle>
       {!isNew && claimed ? (
         <div className="banner">
           Claimed by {claimedBy || "Anonymous"}
@@ -113,6 +138,37 @@ export default function ItemForm() {
       ) : null}
 
       <form className="form-grid" onSubmit={onSubmit}>
+        {isNew ? (
+          <>
+            <label>
+              Wishlist
+              <select
+                className="select-field"
+                value={targetId}
+                onChange={(e) => setTargetId(e.target.value)}
+                required
+              >
+                {wishlists.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.title}
+                  </option>
+                ))}
+                <option value={NEW_WISHLIST}>New wishlist…</option>
+              </select>
+            </label>
+            {targetId === NEW_WISHLIST ? (
+              <label>
+                New wishlist name
+                <input
+                  value={newWishlistTitle}
+                  onChange={(e) => setNewWishlistTitle(e.target.value)}
+                  placeholder="Birthday, holidays…"
+                />
+              </label>
+            ) : null}
+          </>
+        ) : null}
+
         <label>
           Name
           <input
@@ -148,13 +204,13 @@ export default function ItemForm() {
           />
         </label>
         {error && <p className="error">{error}</p>}
-        <button className="btn btn-block" type="submit" disabled={busy}>
+        <button className="btn btn-block" type="submit" disabled={busy || !canSubmit}>
           {isNew ? (
             <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
           ) : (
             <Save size={18} strokeWidth={2} aria-hidden="true" />
           )}
-          {busy ? "Saving…" : isNew ? "Add item" : "Save"}
+          {busy ? "Saving…" : isNew ? "Add wish" : "Save"}
         </button>
       </form>
 
@@ -165,7 +221,7 @@ export default function ItemForm() {
           onClick={() => void onDelete()}
         >
           <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
-          Delete item
+          Delete wish
         </button>
       ) : null}
     </Screen>

@@ -51,7 +51,7 @@ export default function ListDetail() {
 
   if (loading) {
     return (
-      <Screen title="List" backTo="/app" backLabel="Home" tabs largeTitle={false}>
+      <Screen title="Wishlist" backTo="/app" backLabel="Home" tabs largeTitle={false}>
         <p className="muted">Loading…</p>
       </Screen>
     );
@@ -59,7 +59,7 @@ export default function ListDetail() {
 
   if (!wishlist) {
     return (
-      <Screen title="List" backTo="/app" backLabel="Home" tabs largeTitle={false}>
+      <Screen title="Wishlist" backTo="/app" backLabel="Home" tabs largeTitle={false}>
         <p className="error">{error || "Not found"}</p>
       </Screen>
     );
@@ -105,10 +105,10 @@ export default function ListDetail() {
 
       {wishlist.items.length === 0 ? (
         <div className="empty-state">
-          <p className="empty-title">No items</p>
-          <p className="muted">Tap + below to add a gift.</p>
-          <Link className="btn" to={`/app/lists/${id}/items/new`}>
-            Add first item
+          <p className="empty-title">No wishes</p>
+          <p className="muted">Tap + below to add a wish.</p>
+          <Link className="btn" to={`/app/wishes/new?wishlist=${encodeURIComponent(id)}`}>
+            Add first wish
           </Link>
         </div>
       ) : (

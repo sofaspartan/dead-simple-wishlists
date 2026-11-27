@@ -33,16 +33,16 @@ export default function ListShare() {
 
   if (loading) {
     return (
-      <Screen title="Share" backTo={`/app/lists/${id}`} backLabel="List" largeTitle={false}>
+      <Screen title="Share" backTo={`/app/lists/${id}`} backLabel="Wishlist" largeTitle={false}>
         <p className="muted">Loading…</p>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Share" backTo={`/app/lists/${id}`} backLabel="List" largeTitle>
+    <Screen title="Share" backTo={`/app/lists/${id}`} backLabel="Wishlist" largeTitle>
       <p className="muted lead">
-        Anyone with this link can view <strong>{title}</strong> and claim items.
+        Anyone with this link can view <strong>{title}</strong> and claim wishes.
       </p>
       {error && <p className="error">{error}</p>}
       <div className="share-url">{shareUrl}</div>

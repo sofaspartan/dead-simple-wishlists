@@ -1,11 +1,11 @@
-import { ListPlus, PackagePlus, X } from "lucide-react";
+import { Gift, ListPlus, X } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  /** When set, “Add item” targets this list. */
+  /** When set, “Add wish” pre-selects this wishlist. */
   listId?: string;
 };
 
@@ -40,6 +40,10 @@ export default function AddSheet({ open, onClose, listId }: Props) {
     navigate(path);
   }
 
+  const addWishPath = listId
+    ? `/app/wishes/new?wishlist=${encodeURIComponent(listId)}`
+    : "/app/wishes/new";
+
   return (
     <div className="add-sheet-root" role="presentation">
       <button type="button" className="add-sheet-backdrop" aria-label="Close" onClick={onClose} />
@@ -59,20 +63,14 @@ export default function AddSheet({ open, onClose, listId }: Props) {
           </button>
         </div>
         <div className="add-sheet-actions">
-          <button
-            type="button"
-            className="add-sheet-action"
-            disabled={!listId}
-            title={listId ? undefined : "Open a list to add an item"}
-            onClick={() => listId && go(`/app/lists/${listId}/items/new`)}
-          >
+          <button type="button" className="add-sheet-action" onClick={() => go(addWishPath)}>
             <span className="add-sheet-action-icon">
-              <PackagePlus {...iconProps} />
+              <Gift {...iconProps} />
             </span>
             <span className="add-sheet-action-text">
-              <span className="add-sheet-action-label">Add item</span>
+              <span className="add-sheet-action-label">Add wish</span>
               <span className="add-sheet-action-hint">
-                {listId ? "To this wishlist" : "Open a list first"}
+                {listId ? "To this wishlist or another" : "Pick a wishlist or start a new one"}
               </span>
             </span>
           </button>
@@ -81,7 +79,7 @@ export default function AddSheet({ open, onClose, listId }: Props) {
               <ListPlus {...iconProps} />
             </span>
             <span className="add-sheet-action-text">
-              <span className="add-sheet-action-label">Add list</span>
+              <span className="add-sheet-action-label">Add wishlist</span>
               <span className="add-sheet-action-hint">Start a new wishlist</span>
             </span>
           </button>

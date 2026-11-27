@@ -51,9 +51,9 @@ export default function Favorites() {
             <Heart size={36} strokeWidth={1.5} />
           </span>
           <p className="empty-title">No favorites yet</p>
-          <p className="muted">Star a list from its ⋮ menu to find it here.</p>
+          <p className="muted">Star a wishlist from its ⋮ menu to find it here.</p>
           <Link className="btn" to="/app">
-            Browse lists
+            Browse wishlists
           </Link>
         </div>
       ) : (
@@ -64,7 +64,7 @@ export default function Favorites() {
                 to={`/app/lists/${w.id}`}
                 title={w.title}
                 variant="list"
-                meta={`${w.items.length} item${w.items.length === 1 ? "" : "s"}`}
+                meta={`${w.items.length} wish${w.items.length === 1 ? "" : "es"}`}
                 menu={{
                   "aria-label": `Actions for ${w.title}`,
                   onEdit: () => navigate(`/app/lists/${w.id}/edit`),

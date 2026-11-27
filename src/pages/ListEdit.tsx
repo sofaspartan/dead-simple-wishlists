@@ -48,14 +48,19 @@ export default function ListEdit() {
 
   if (loading) {
     return (
-      <Screen title="Edit list" backTo={`/app/lists/${id}`} backLabel="List" largeTitle={false}>
+      <Screen
+        title="Edit wishlist"
+        backTo={`/app/lists/${id}`}
+        backLabel="Wishlist"
+        largeTitle={false}
+      >
         <p className="muted">Loading…</p>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Edit list" backTo={`/app/lists/${id}`} backLabel="List" largeTitle>
+    <Screen title="Edit wishlist" backTo={`/app/lists/${id}`} backLabel="Wishlist" largeTitle>
       <form className="form-grid" onSubmit={onSubmit}>
         <label>
           Title
@@ -77,7 +82,7 @@ export default function ListEdit() {
       </form>
       <button className="btn btn-danger btn-block" type="button" onClick={() => void onDelete()}>
         <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
-        Delete list
+        Delete wishlist
       </button>
     </Screen>
   );
