@@ -128,7 +128,7 @@ export default function ItemForm() {
   return (
     <Screen title={title} backTo={backTo} backLabel="Back" largeTitle>
       {!isNew && claimed ? (
-        <div className="banner">
+        <div className="banner banner-claimed">
           Claimed by {claimedBy || "Anonymous"}
           <button className="text-action" type="button" onClick={() => void onUnclaim()}>
             <Undo2 size={16} strokeWidth={2} aria-hidden="true" />

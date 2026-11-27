@@ -1,16 +1,31 @@
 :root {
-  --bg0: #0b0b0c;
-  --ink: #f2f2f4;
-  --ink-soft: #a0a0a6;
-  --accent: #3d8bfd;
-  --accent-pressed: #2f6fd1;
-  --surface: #1a1a1d;
-  --surface-raised: #26262b;
-  --surface-press: #303036;
-  --danger: #ff453a;
-  --danger-bg: #3a1513;
-  --placeholder-list: #2a3140;
-  --placeholder-item: #2e2a38;
+  /* Midnight Violet */
+  --bg: #111318;
+  --surface: #1b1e26;
+  --elevated: #242833;
+  --border: #303541;
+  --text: #f5f6fa;
+  --text-secondary: #a4a9b6;
+  --accent: #7c3aed;
+  --accent-highlight: #a78bfa;
+  --accent-pressed: #6d28d9;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+
+  /* Aliases used across components */
+  --bg0: var(--bg);
+  --ink: var(--text);
+  --ink-soft: var(--text-secondary);
+  --muted: var(--text-secondary);
+  --surface-raised: var(--elevated);
+  --surface-press: var(--border);
+  --danger: var(--error);
+  --danger-bg: color-mix(in srgb, var(--error) 18%, var(--elevated));
+  --placeholder-list: var(--elevated);
+  --placeholder-item: color-mix(in srgb, var(--accent) 14%, var(--elevated));
+  --placeholder-text: color-mix(in srgb, var(--text-secondary) 55%, var(--elevated));
+
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Segoe UI", system-ui, sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui,
@@ -203,7 +218,7 @@ textarea {
   align-items: center;
   justify-content: center;
   gap: 0.15rem;
-  color: #fff;
+  color: var(--text-secondary);
   font-size: 0.68rem;
   font-weight: 500;
   text-decoration: none;
@@ -216,11 +231,11 @@ textarea {
 
 .tab:hover {
   text-decoration: none;
-  color: #fff;
+  color: var(--text);
 }
 
 .tab.active {
-  color: var(--accent);
+  color: var(--accent-highlight);
 }
 
 .tab-icon {
@@ -267,7 +282,7 @@ textarea {
 }
 
 .tab-add:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--accent-highlight);
   outline-offset: 2px;
 }
 
@@ -421,7 +436,7 @@ textarea {
 }
 
 .btn:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--accent-highlight);
   outline-offset: 2px;
 }
 
@@ -445,7 +460,7 @@ textarea {
 }
 
 .btn-danger:hover {
-  background: #4a1a17;
+  background: color-mix(in srgb, var(--error) 28%, var(--elevated));
   color: var(--danger);
 }
 
@@ -484,6 +499,7 @@ label.check-row input {
   margin: 0;
   width: 1.15rem;
   height: 1.15rem;
+  accent-color: var(--accent);
 }
 
 input,
@@ -491,7 +507,7 @@ textarea,
 select.select-field {
   width: 100%;
   border: 0;
-  background: var(--surface);
+  background: var(--elevated);
   border-radius: var(--radius);
   padding: 0.9rem 1rem;
   min-height: var(--tap);
@@ -506,7 +522,7 @@ textarea {
 
 select.select-field {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23A4A9B6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   padding-right: 2.5rem;
@@ -514,13 +530,13 @@ select.select-field {
 
 input::placeholder,
 textarea::placeholder {
-  color: #6e6e73;
+  color: var(--placeholder-text);
 }
 
 input:focus,
 textarea:focus,
 select.select-field:focus {
-  background-color: var(--surface-raised);
+  background-color: var(--elevated);
   box-shadow: none;
 }
 
@@ -536,7 +552,7 @@ select.select-field:focus-visible {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  background: var(--surface);
+  background: var(--elevated);
   border-radius: var(--radius);
   padding: 0 0.85rem;
   min-height: var(--tap);
@@ -544,14 +560,14 @@ select.select-field:focus-visible {
 
 .search-field-icon {
   display: inline-flex;
-  color: #fff;
+  color: var(--accent-highlight);
   opacity: 1;
   flex-shrink: 0;
 }
 
 .search-field-icon svg {
-  color: #fff;
-  stroke: #fff;
+  color: var(--accent-highlight);
+  stroke: currentColor;
   opacity: 1;
 }
 
@@ -640,13 +656,13 @@ select.select-field:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--accent-highlight);
   opacity: 1;
 }
 
 .media-card-placeholder svg {
-  color: #fff;
-  stroke: #fff;
+  color: var(--accent-highlight);
+  stroke: currentColor;
   opacity: 1;
   fill: none;
 }
@@ -659,8 +675,8 @@ select.select-field:focus-visible {
 }
 
 .media-card-menu .more-menu-trigger {
-  background: #000;
-  color: #fff;
+  background: var(--bg);
+  color: var(--text);
   border-radius: 12px;
   width: 2.5rem;
   height: 2.5rem;
@@ -670,15 +686,15 @@ select.select-field:focus-visible {
 }
 
 .media-card-menu .more-menu-trigger svg {
-  color: #fff;
-  stroke: #fff;
+  color: var(--text);
+  stroke: currentColor;
   opacity: 1;
 }
 
 .media-card-menu .more-menu-trigger:hover,
 .media-card-menu .more-menu-trigger[aria-expanded="true"] {
-  background: #111;
-  color: #fff;
+  background: var(--elevated);
+  color: var(--text);
 }
 
 .media-card-body {
@@ -743,9 +759,9 @@ select.select-field:focus-visible {
   height: 100%;
   padding: 1rem 0.75rem;
   border-radius: 16px;
-  border: 2px dashed #fff;
+  border: 2px dashed var(--border);
   background: transparent;
-  color: #fff;
+  color: var(--text);
   text-decoration: none;
   text-align: center;
   opacity: 1;
@@ -753,19 +769,20 @@ select.select-field:focus-visible {
 
 .add-card:hover {
   background: var(--surface);
+  border-color: var(--accent-highlight);
   text-decoration: none;
-  color: #fff;
+  color: var(--text);
 }
 
 .add-card-icon {
   display: inline-flex;
-  color: #fff;
+  color: var(--accent-highlight);
   opacity: 1;
 }
 
 .add-card-icon svg {
-  color: #fff;
-  stroke: #fff;
+  color: var(--accent-highlight);
+  stroke: currentColor;
   opacity: 1;
 }
 
@@ -773,7 +790,7 @@ select.select-field:focus-visible {
   font-weight: 600;
   font-size: 0.95rem;
   letter-spacing: -0.015em;
-  color: #fff;
+  color: var(--text-secondary);
 }
 
 /* —— Legacy nav rows (account / shared claim rows) —— */
@@ -798,7 +815,7 @@ select.select-field:focus-visible {
 
 .nav-row + .nav-row,
 .nav-list > li + li .nav-row {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border);
 }
 
 .nav-row:has(.nav-row-main) {
@@ -888,7 +905,7 @@ select.select-field:focus-visible {
   appearance: none;
   border: 0;
   background: transparent;
-  color: #fff;
+  color: var(--text);
   width: 3rem;
   height: 3rem;
   min-width: 3rem;
@@ -903,15 +920,15 @@ select.select-field:focus-visible {
 }
 
 .more-menu-trigger svg {
-  color: #fff;
-  stroke: #fff;
+  color: inherit;
+  stroke: currentColor;
   opacity: 1;
 }
 
 .more-menu-trigger:hover,
 .more-menu-trigger[aria-expanded="true"] {
-  background: var(--surface-press);
-  color: #fff;
+  background: var(--elevated);
+  color: var(--text);
 }
 
 .more-menu-panel {
@@ -920,7 +937,7 @@ select.select-field:focus-visible {
   min-width: 13.5rem;
   padding: 0.45rem;
   border-radius: 16px;
-  background: var(--surface-press);
+  background: var(--elevated);
   box-shadow: none;
   display: grid;
   gap: 0.25rem;
@@ -961,7 +978,7 @@ select.select-field:focus-visible {
 }
 
 .more-menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--border);
 }
 
 .more-menu-item-danger {
@@ -969,7 +986,7 @@ select.select-field:focus-visible {
 }
 
 .more-menu-item-danger:hover {
-  background: rgba(255, 69, 58, 0.12);
+  background: color-mix(in srgb, var(--error) 16%, var(--elevated));
 }
 
 .empty-state {
@@ -982,14 +999,14 @@ select.select-field:focus-visible {
 
 .empty-icon {
   display: inline-flex;
-  color: #fff;
+  color: var(--accent-highlight);
   opacity: 1;
   margin-bottom: 0.25rem;
 }
 
 .empty-icon svg {
-  color: #fff;
-  stroke: #fff;
+  color: var(--accent-highlight);
+  stroke: currentColor;
   opacity: 1;
 }
 
@@ -1264,7 +1281,7 @@ select.select-field:focus-visible {
   margin: 0 auto;
   border-radius: 16px;
   overflow: hidden;
-  background: #000;
+  background: var(--bg);
   touch-action: none;
   display: flex;
   align-items: center;
@@ -1344,6 +1361,16 @@ select.select-field:focus-visible {
   font-size: 0.95rem;
 }
 
+.banner-claimed {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+}
+
+.banner-warning {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+}
+
 .codes {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1365,10 +1392,20 @@ select.select-field:focus-visible {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink-soft);
-  background: var(--surface-raised);
+  background: var(--elevated);
   padding: 0.35rem 0.6rem;
   border-radius: 8px;
   white-space: nowrap;
+}
+
+.badge-claimed {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 16%, var(--elevated));
+}
+
+.badge-warning {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 16%, var(--elevated));
 }
 
 .muted {
@@ -1438,7 +1475,7 @@ select.select-field:focus-visible {
 
 @media (min-width: 720px) {
   body {
-    background: #050505;
+    background: color-mix(in srgb, var(--bg) 82%, #000);
   }
 
   .phone-frame {
