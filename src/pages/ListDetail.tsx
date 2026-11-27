@@ -34,7 +34,8 @@ export default function ListDetail() {
   async function onDeleteItem(itemId: string, name: string) {
     if (!confirm(`Delete “${name}”?`)) return;
     try {
-      const res = await api.deleteItem(id, itemId);
+      await api.deleteWish(itemId);
+      const res = await api.getWishlist(id);
       setWishlist(res.wishlist);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete");
@@ -42,7 +43,7 @@ export default function ListDetail() {
   }
 
   async function onDeleteList(title: string) {
-    if (!confirm(`Delete “${title}”?`)) return;
+    if (!confirm(`Delete “${title}”? Wishes on it stay in Unlisted wishes.`)) return;
     try {
       await api.deleteWishlist(id);
       navigate("/app", { replace: true });
@@ -81,10 +82,12 @@ export default function ListDetail() {
       right={
         <MoreMenu
           aria-label={`Actions for ${wishlist.title}`}
+          editLabel="Edit wishlist"
+          deleteLabel="Delete wishlist"
           onEdit={() => navigate(`/app/lists/${id}/edit`)}
           onDelete={() => void onDeleteList(wishlist.title)}
           extra={{
-            label: favorited ? "Unfavorite" : "Favorite",
+            label: favorited ? "Unfavorite wishlist" : "Favorite wishlist",
             onSelect: () => {
               toggleFavorite(id);
               setFavTick((n) => n + 1);
@@ -120,6 +123,8 @@ export default function ListDetail() {
               }
               menu={{
                 "aria-label": `Actions for ${it.name}`,
+                editLabel: "Edit wish",
+                deleteLabel: "Delete wish",
                 onEdit: () => navigate(`/app/lists/${id}/items/${it.id}`),
                 onDelete: () => void onDeleteItem(it.id, it.name),
               }}

@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Props = {
-  title?: string;
+  title?: React.ReactNode;
   backTo?: string;
   backLabel?: string;
   right?: React.ReactNode;
@@ -31,10 +31,24 @@ export default function TopBar({
             <span className="top-bar-spacer" />
           )}
         </div>
-        {!large && title ? <h1 className="top-bar-title">{title}</h1> : <span />}
+        {!large && title ? (
+          typeof title === "string" ? (
+            <h1 className="top-bar-title">{title}</h1>
+          ) : (
+            <div className="top-bar-title-slot">{title}</div>
+          )
+        ) : (
+          <span />
+        )}
         <div className="top-bar-side top-bar-side-right">{right}</div>
       </div>
-      {large && title ? <h1 className="screen-title">{title}</h1> : null}
+      {large && title ? (
+        typeof title === "string" ? (
+          <h1 className="screen-title">{title}</h1>
+        ) : (
+          <div className="screen-title-slot">{title}</div>
+        )
+      ) : null}
     </header>
   );
 }

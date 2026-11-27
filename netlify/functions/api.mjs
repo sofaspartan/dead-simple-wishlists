@@ -16,14 +16,21 @@ import {
 import {
   addItem,
   claimItem,
+  createWish,
   createWishlist,
   deleteItem,
+  deleteWish,
   deleteWishlist,
+  getOwnedWish,
   getOwnedWishlist,
   getSharedWishlist,
+  listWishesForUser,
   listWishlistsForUser,
+  publicItem,
   unclaimItem,
+  unclaimWish,
   updateItem,
+  updateWish,
   updateWishlist,
   withOwner,
 } from "./lib/wishlists.mjs";
@@ -198,6 +205,46 @@ export async function handler(event) {
           anonymous: body.anonymous,
         });
         return json(200, { wishlist: list });
+      }
+    }
+
+    // Authenticated wishes (may be unlisted or on multiple lists)
+    if (parts[0] === "wishes") {
+      const user = await getUserFromRequest(event);
+      if (!user) return json(401, { error: "Not signed in" });
+
+      if (!parts[1] && method === "GET") {
+        const filter = event.queryStringParameters?.filter || "all";
+        const wishes = await listWishesForUser(user.id, { filter });
+        return json(200, { wishes });
+      }
+
+      if (!parts[1] && method === "POST") {
+        const wish = await createWish(user.id, body);
+        return json(201, { wish });
+      }
+
+      const wishId = parts[1];
+      if (!wishId) return json(404, { error: "Not found" });
+
+      if (!parts[2] && method === "GET") {
+        const wish = await getOwnedWish(user.id, wishId);
+        return json(200, { wish: publicItem(wish, { isOwner: true }) });
+      }
+
+      if (!parts[2] && method === "PATCH") {
+        const wish = await updateWish(user.id, wishId, body);
+        return json(200, { wish });
+      }
+
+      if (!parts[2] && method === "DELETE") {
+        await deleteWish(user.id, wishId);
+        return json(200, { ok: true });
+      }
+
+      if (parts[2] === "unclaim" && method === "POST") {
+        const wish = await unclaimWish(user.id, wishId);
+        return json(200, { wish });
       }
     }
 

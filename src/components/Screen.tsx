@@ -2,7 +2,7 @@ import AppFrame from "./AppFrame";
 import TopBar from "./TopBar";
 
 type Props = {
-  title?: string;
+  title?: React.ReactNode;
   backTo?: string;
   backLabel?: string;
   right?: React.ReactNode;

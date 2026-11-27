@@ -20,6 +20,7 @@ export type WishlistItem = {
   url: string;
   notes: string;
   price: string;
+  wishlistIds?: string[];
   claimed: boolean;
   claimedBy: string | null;
   claimedAnonymous?: boolean;
@@ -56,6 +57,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   return data;
 }
+
+export type WishPayload = {
+  name: string;
+  url?: string;
+  notes?: string;
+  price?: string;
+  wishlistIds?: string[];
+};
 
 export const api = {
   me: () => request<{ user: User }>("/auth/me"),
@@ -104,6 +113,29 @@ export const api = {
     }),
   deleteWishlist: (id: string) =>
     request<{ ok: boolean }>(`/wishlists/${id}`, { method: "DELETE" }),
+  listWishes: (filter: "all" | "unlisted" = "all") =>
+    request<{ wishes: WishlistItem[] }>(`/wishes?filter=${encodeURIComponent(filter)}`),
+  createWish: (data: WishPayload) =>
+    request<{ wish: WishlistItem }>("/wishes", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getWish: (id: string) => request<{ wish: WishlistItem }>(`/wishes/${id}`),
+  updateWish: (
+    id: string,
+    data: Partial<WishPayload> & { wishlistIds?: string[] }
+  ) =>
+    request<{ wish: WishlistItem }>(`/wishes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteWish: (id: string) =>
+    request<{ ok: boolean }>(`/wishes/${id}`, { method: "DELETE" }),
+  unclaimWish: (id: string) =>
+    request<{ wish: WishlistItem }>(`/wishes/${id}/unclaim`, {
+      method: "POST",
+      body: "{}",
+    }),
   addItem: (
     wishlistId: string,
     data: { name: string; url?: string; notes?: string; price?: string }

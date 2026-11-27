@@ -146,6 +146,14 @@ export default function App() {
         }
       />
       <Route
+        path="/app/wishes/:itemId"
+        element={
+          <Protected>
+            <ItemForm />
+          </Protected>
+        }
+      />
+      <Route
         path="/app/lists/:id/items/new"
         element={
           <Protected>

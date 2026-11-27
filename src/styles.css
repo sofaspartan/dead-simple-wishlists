@@ -145,6 +145,124 @@ textarea {
   text-align: center;
 }
 
+.screen-title-slot {
+  display: flex;
+  justify-content: center;
+  margin: 0.35rem 0 0.15rem;
+}
+
+.top-bar-title-slot {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* —— Home view title (Wishlists / All / Unlisted) —— */
+.home-view-trigger {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.35rem;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.home-view-trigger .home-view-label {
+  margin: 0;
+}
+
+.home-view-caret {
+  color: var(--accent-highlight);
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.home-view-caret.open {
+  transform: rotate(180deg);
+}
+
+.home-view-root {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.home-view-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  padding: 0;
+}
+
+.home-view-sheet {
+  position: relative;
+  width: min(calc(100% - 1.4rem), calc(var(--frame-max) - 1.4rem));
+  margin: 0 auto calc(0.85rem + var(--safe-bottom) + var(--tab-h) + 0.55rem);
+  background: var(--surface-raised);
+  border-radius: 20px;
+  padding: 0.65rem;
+  z-index: 1;
+  display: grid;
+  gap: 0.4rem;
+  animation: sheet-up 0.22s ease both;
+}
+
+.home-view-option {
+  appearance: none;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.95rem 1rem;
+  min-height: var(--tap);
+  border-radius: var(--radius);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+}
+
+.home-view-option:hover,
+.home-view-option.active {
+  background: var(--surface-press);
+}
+
+.home-view-option.active {
+  color: var(--accent-highlight);
+}
+
+.wish-list-fieldset {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: grid;
+  gap: 0.35rem;
+}
+
+.wish-list-fieldset legend {
+  padding: 0;
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -1817,6 +1935,10 @@ select.select-field:focus-visible {
   }
 
   .fav-search-root {
+    position: absolute;
+  }
+
+  .home-view-root {
     position: absolute;
   }
 
