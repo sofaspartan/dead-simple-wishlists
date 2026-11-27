@@ -202,7 +202,6 @@ export default function EditWishModal({
                       value={item.name}
                       onChange={(e) => setItem((s) => ({ ...s, name: e.target.value }))}
                       required
-                      autoFocus
                     />
                   </label>
                   <label>

@@ -44,7 +44,6 @@ export default function MoreMenu({
 }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
   const middleActions = extras?.length ? extras : extra ? [extra] : [];
@@ -58,12 +57,6 @@ export default function MoreMenu({
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const first = sheetRef.current?.querySelector<HTMLButtonElement>("button");
-    first?.focus();
   }, [open]);
 
   function close() {
@@ -80,13 +73,7 @@ export default function MoreMenu({
               aria-label="Close"
               onClick={close}
             />
-            <div
-              className="more-menu-sheet"
-              id={menuId}
-              role="menu"
-              aria-label={ariaLabel}
-              ref={sheetRef}
-            >
+            <div className="more-menu-sheet" id={menuId} role="menu" aria-label={ariaLabel}>
               <button
                 type="button"
                 className="more-menu-item"

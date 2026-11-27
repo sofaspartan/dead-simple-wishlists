@@ -196,7 +196,6 @@ export default function EditWishlistModal({
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       required
-                      autoFocus
                     />
                   </label>
                   <label>
