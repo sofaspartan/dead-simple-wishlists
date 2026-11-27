@@ -23,6 +23,7 @@ import {
   updateItem,
   updateWishlist,
 } from "./lib/wishlists.mjs";
+import { storageBackend } from "./lib/store.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Credentials": "true",
@@ -222,12 +223,7 @@ export async function handler(event) {
     if (parts[0] === "health" && method === "GET") {
       return json(200, {
         ok: true,
-        blobs:
-          Boolean(process.env.NETLIFY_BLOBS_CONTEXT) ||
-          Boolean(process.env.NETLIFY_DEV) ||
-          Boolean(process.env.CONTEXT)
-            ? "netlify"
-            : "local-file-fallback",
+        blobs: storageBackend(),
       });
     }
 

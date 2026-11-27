@@ -5,16 +5,7 @@ import { existsSync } from "node:fs";
 
 const LOCAL_DIR = join(process.cwd(), ".data", "blobs");
 
-function blobsAvailable() {
-  return Boolean(
-    process.env.NETLIFY_BLOBS_CONTEXT ||
-      process.env.NETLIFY_DEV ||
-      process.env.CONTEXT ||
-      process.env.NETLIFY
-  );
-}
-
-/** File-backed fallback so `netlify functions:serve` / local smoke tests work without Blobs context. */
+/** File-backed fallback so local smoke tests work without Blobs context. */
 function localStore(name) {
   const dir = join(LOCAL_DIR, name);
 
@@ -28,6 +19,7 @@ function localStore(name) {
   }
 
   return {
+    backend: "local-file-fallback",
     async get(key, opts = {}) {
       await ensure();
       try {
@@ -70,32 +62,48 @@ function localStore(name) {
   };
 }
 
+function netlifyStore(name) {
+  const s = getStore(name);
+  return {
+    backend: "netlify",
+    async get(key, opts = {}) {
+      return s.get(key, { type: opts.type || "json" });
+    },
+    async setJSON(key, value) {
+      await s.setJSON(key, value);
+    },
+    async set(key, value) {
+      await s.set(key, value);
+    },
+    async delete(key) {
+      await s.delete(key);
+    },
+    async list() {
+      return s.list();
+    },
+  };
+}
+
+/**
+ * Prefer Netlify Blobs whenever getStore() works (deployed Functions inject
+ * context). Only use the file fallback when Blobs cannot initialize — e.g.
+ * bare `node scripts/smoke.mjs` outside Netlify.
+ */
 export function store(name) {
-  if (blobsAvailable()) {
-    try {
-      const s = getStore(name);
-      return {
-        async get(key, opts = {}) {
-          return s.get(key, { type: opts.type || "json" });
-        },
-        async setJSON(key, value) {
-          await s.setJSON(key, value);
-        },
-        async set(key, value) {
-          await s.set(key, value);
-        },
-        async delete(key) {
-          await s.delete(key);
-        },
-        async list() {
-          return s.list();
-        },
-      };
-    } catch {
-      // Fall through to local store
-    }
+  try {
+    return netlifyStore(name);
+  } catch {
+    return localStore(name);
   }
-  return localStore(name);
+}
+
+export function storageBackend() {
+  try {
+    getStore("_probe");
+    return "netlify";
+  } catch {
+    return "local-file-fallback";
+  }
 }
 
 export const usersStore = () => store("users");
