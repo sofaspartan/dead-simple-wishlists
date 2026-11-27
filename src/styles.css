@@ -386,30 +386,42 @@ textarea {
 }
 
 /* —— Home view tabs (Wishlists | Wishes | Unlisted) —— */
+/* Match floating bottom nav: Lucide outline icons + flat accent active */
 .home-view-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.15rem;
   width: 100%;
   max-width: 22rem;
   margin: 0 auto;
-  padding: 0.25rem;
-  background: var(--surface);
+  padding: 0.35rem 0.55rem;
+  height: var(--tab-h);
+  background: var(--surface-raised);
   border-radius: 999px;
 }
 
 .home-view-tab {
   appearance: none;
   border: 0;
-  background: transparent;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
   color: var(--text-secondary);
-  min-height: 2.5rem;
-  padding: 0.45rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  font-family: inherit;
+  letter-spacing: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0.25rem 0.15rem;
   border-radius: 999px;
-  font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
   cursor: pointer;
+  opacity: 1;
+  width: 100%;
 }
 
 .home-view-tab:hover {
@@ -417,8 +429,20 @@ textarea {
 }
 
 .home-view-tab.active {
-  background: var(--elevated);
   color: var(--accent-highlight);
+}
+
+.home-view-tab-icon {
+  display: inline-flex;
+  line-height: 1;
+  color: inherit;
+  opacity: 1;
+}
+
+.home-view-tab-icon svg {
+  color: inherit;
+  stroke: currentColor;
+  opacity: 1;
 }
 
 /* —— New wish create-mode tabs —— */
