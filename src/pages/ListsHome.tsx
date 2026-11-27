@@ -1,10 +1,12 @@
-import { ChevronRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
 
 export default function ListsHome() {
+  const navigate = useNavigate();
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -22,6 +24,16 @@ export default function ListsHome() {
       }
     })();
   }, []);
+
+  async function onDeleteList(id: string, title: string) {
+    if (!confirm(`Delete “${title}”?`)) return;
+    try {
+      await api.deleteWishlist(id);
+      setWishlists((list) => list.filter((w) => w.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete");
+    }
+  }
 
   return (
     <Screen
@@ -51,8 +63,8 @@ export default function ListsHome() {
         <ul className="nav-list">
           {wishlists.map((w) => (
             <li key={w.id}>
-              <Link className="nav-row" to={`/app/lists/${w.id}`}>
-                <div>
+              <div className="nav-row">
+                <Link className="nav-row-main" to={`/app/lists/${w.id}`}>
                   <span className="nav-row-title">{w.title}</span>
                   <span className="nav-row-meta">
                     {w.items.length} item{w.items.length === 1 ? "" : "s"}
@@ -60,11 +72,13 @@ export default function ListsHome() {
                       ? ` · ${w.items.filter((i) => i.claimed).length} claimed`
                       : ""}
                   </span>
-                </div>
-                <span className="chevron" aria-hidden="true">
-                  <ChevronRight size={20} strokeWidth={1.75} />
-                </span>
-              </Link>
+                </Link>
+                <MoreMenu
+                  aria-label={`Actions for ${w.title}`}
+                  onEdit={() => navigate(`/app/lists/${w.id}/edit`)}
+                  onDelete={() => void onDeleteList(w.id, w.title)}
+                />
+              </div>
             </li>
           ))}
         </ul>

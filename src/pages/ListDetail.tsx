@@ -1,11 +1,13 @@
-import { ChevronRight, Pencil, Plus, Share2 } from "lucide-react";
+import { Plus, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
+import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
 
 export default function ListDetail() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,16 @@ export default function ListDetail() {
     })();
   }, [id]);
 
+  async function onDeleteItem(itemId: string, name: string) {
+    if (!confirm(`Delete “${name}”?`)) return;
+    try {
+      const res = await api.deleteItem(id, itemId);
+      setWishlist(res.wishlist);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete");
+    }
+  }
+
   if (loading) {
     return (
       <Screen title="List" backTo="/app" backLabel="Lists" largeTitle={false}>
@@ -41,30 +53,19 @@ export default function ListDetail() {
   }
 
   return (
-    <Screen
-      title={wishlist.title}
-      backTo="/app"
-      backLabel="Lists"
-      largeTitle
-      right={
-        <Link to={`/app/lists/${id}/edit`} className="text-action">
-          <Pencil size={16} strokeWidth={2} aria-hidden="true" />
-          Edit
-        </Link>
-      }
-    >
+    <Screen title={wishlist.title} backTo="/app" backLabel="Lists" largeTitle>
       {wishlist.description ? (
         <p className="muted lead">{wishlist.description}</p>
       ) : null}
 
-      <div className="action-strip">
+      <div className="action-strip action-strip-center">
+        <Link className="btn btn-small" to={`/app/lists/${id}/items/new`}>
+          <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
+          Add
+        </Link>
         <Link className="btn btn-ghost btn-small" to={`/app/lists/${id}/share`}>
           <Share2 size={16} strokeWidth={2} aria-hidden="true" />
           Share
-        </Link>
-        <Link className="btn btn-small" to={`/app/lists/${id}/items/new`}>
-          <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
-          Add item
         </Link>
       </div>
 
@@ -83,19 +84,21 @@ export default function ListDetail() {
         <ul className="nav-list">
           {wishlist.items.map((it) => (
             <li key={it.id}>
-              <Link className="nav-row" to={`/app/lists/${id}/items/${it.id}`}>
-                <div>
+              <div className="nav-row">
+                <Link className="nav-row-main" to={`/app/lists/${id}/items/${it.id}`}>
                   <span className="nav-row-title">{it.name}</span>
                   <span className="nav-row-meta">
                     {[it.price, it.claimed ? `Claimed · ${it.claimedBy || "Anonymous"}` : null]
                       .filter(Boolean)
                       .join(" · ") || "Tap to edit"}
                   </span>
-                </div>
-                <span className="chevron" aria-hidden="true">
-                  <ChevronRight size={20} strokeWidth={1.75} />
-                </span>
-              </Link>
+                </Link>
+                <MoreMenu
+                  aria-label={`Actions for ${it.name}`}
+                  onEdit={() => navigate(`/app/lists/${id}/items/${it.id}`)}
+                  onDelete={() => void onDeleteItem(it.id, it.name)}
+                />
+              </div>
             </li>
           ))}
         </ul>
