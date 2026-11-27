@@ -110,7 +110,9 @@ export async function getUserFromRequest(event) {
   if (!token) return null;
 
   const sessions = sessionsStore();
-  const session = await sessions.get(hashToken(token + getSessionSecret()));
+  const session = await sessions.get(hashToken(token + getSessionSecret()), {
+    retry: true,
+  });
   if (!session) return null;
   if (new Date(session.expiresAt).getTime() < Date.now()) {
     await sessions.delete(hashToken(token + getSessionSecret()));
@@ -118,9 +120,9 @@ export async function getUserFromRequest(event) {
   }
 
   const users = usersStore();
-  const index = await users.get(`id:${session.userId}`);
+  const index = await users.get(`id:${session.userId}`, { retry: true });
   if (!index?.username) return null;
-  const user = await users.get(index.username);
+  const user = await users.get(index.username, { retry: true });
   if (!user) return null;
   return publicUser(user);
 }

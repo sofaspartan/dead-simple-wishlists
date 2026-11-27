@@ -1,14 +1,15 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { api, type Wishlist } from "../api";
-import Shell from "../components/Shell";
+import { api, type Wishlist, type WishlistItem } from "../api";
+import AppFrame from "../components/AppFrame";
+import TopBar from "../components/TopBar";
 
 export default function SharedWishlist() {
   const { slug = "" } = useParams();
   const [wishlist, setWishlist] = useState<Wishlist | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState<WishlistItem | null>(null);
   const [claimerName, setClaimerName] = useState("");
   const [anonymous, setAnonymous] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -29,13 +30,13 @@ export default function SharedWishlist() {
 
   async function onClaim(e: FormEvent) {
     e.preventDefault();
-    if (!claimingId) return;
+    if (!claiming) return;
     setBusy(true);
     setError("");
     try {
-      const res = await api.claim(slug, claimingId, claimerName, anonymous);
+      const res = await api.claim(slug, claiming.id, claimerName, anonymous);
       setWishlist(res.wishlist);
-      setClaimingId(null);
+      setClaiming(null);
       setClaimerName("");
       setAnonymous(false);
     } catch (err) {
@@ -45,124 +46,129 @@ export default function SharedWishlist() {
     }
   }
 
+  if (claiming) {
+    return (
+      <AppFrame>
+        <header className="top-bar top-bar-large">
+          <div className="top-bar-row">
+            <div className="top-bar-side">
+              <button type="button" className="back-link" onClick={() => setClaiming(null)}>
+                <span className="back-chevron" aria-hidden="true">
+                  ‹
+                </span>
+                {wishlist?.title || "List"}
+              </button>
+            </div>
+          </div>
+          <h1 className="screen-title">Claim item</h1>
+        </header>
+        <div className="screen-body">
+          <p className="lead-strong">{claiming.name}</p>
+          <p className="muted lead">
+            Leave your name so the owner knows who’s bringing it—or claim
+            anonymously.
+          </p>
+          <form className="form-grid" onSubmit={onClaim}>
+            <label>
+              Your name
+              <input
+                value={claimerName}
+                onChange={(e) => setClaimerName(e.target.value)}
+                disabled={anonymous}
+                placeholder="Alex"
+                autoFocus
+              />
+            </label>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={anonymous}
+                onChange={(e) => setAnonymous(e.target.checked)}
+              />
+              <span>Claim anonymously</span>
+            </label>
+            {error && <p className="error">{error}</p>}
+            <button
+              className="btn btn-block"
+              type="submit"
+              disabled={busy || (!anonymous && !claimerName.trim())}
+            >
+              {busy ? "Claiming…" : "Confirm claim"}
+            </button>
+          </form>
+        </div>
+      </AppFrame>
+    );
+  }
+
   return (
-    <Shell>
-      <div className="stack">
+    <AppFrame>
+      <TopBar title="Shared list" large />
+      <div className="screen-body">
         {loading ? (
           <p className="muted">Loading…</p>
         ) : !wishlist ? (
-          <div className="panel">
-            <h1>Wishlist not found</h1>
+          <>
+            <h1 className="screen-title">Not found</h1>
             <p className="muted">{error || "This share link may be invalid."}</p>
             <Link to="/">Go home</Link>
-          </div>
+          </>
         ) : (
           <>
-            <div>
-              <p className="muted" style={{ margin: 0 }}>
-                Shared wishlist
-              </p>
-              <h1
-                style={{
-                  fontFamily: "var(--font-display)",
-                  letterSpacing: "-0.04em",
-                  margin: "0.2rem 0 0.4rem",
-                  fontSize: "clamp(2rem, 6vw, 3rem)",
-                }}
-              >
-                {wishlist.title}
-              </h1>
-              {wishlist.description && <p className="muted">{wishlist.description}</p>}
-            </div>
-
+            <p className="eyebrow">Shared wishlist</p>
+            <h1 className="screen-title" style={{ marginTop: 0 }}>
+              {wishlist.title}
+            </h1>
+            {wishlist.description ? (
+              <p className="muted lead">{wishlist.description}</p>
+            ) : null}
             {error && <p className="error">{error}</p>}
-
-            <div className="panel">
-              {wishlist.items.length === 0 ? (
-                <p className="empty">Nothing on this list yet.</p>
-              ) : (
-                <div className="list">
-                  {wishlist.items.map((it) => (
-                    <div className="list-row" key={it.id}>
-                      <div>
-                        <h3>
-                          {it.url ? (
-                            <a href={it.url} target="_blank" rel="noreferrer">
-                              {it.name}
-                            </a>
-                          ) : (
-                            it.name
-                          )}{" "}
-                          {it.claimed && (
-                            <span className="badge badge-claimed">
-                              Claimed
-                              {it.claimedBy ? ` · ${it.claimedBy}` : " · Anonymous"}
-                            </span>
-                          )}
-                        </h3>
-                        <div className="item-meta">
-                          {it.price && <span>{it.price}</span>}
-                          {it.notes && <span>{it.notes}</span>}
-                        </div>
-                      </div>
-                      <div className="row-actions">
-                        {!it.claimed && (
-                          <button
-                            className="btn btn-small"
-                            type="button"
-                            onClick={() => setClaimingId(it.id)}
-                          >
-                            Claim
-                          </button>
+            {wishlist.items.length === 0 ? (
+              <p className="empty">Nothing on this list yet.</p>
+            ) : (
+              <ul className="nav-list">
+                {wishlist.items.map((it) => (
+                  <li key={it.id} className="nav-row static-row">
+                    <div>
+                      <span className="nav-row-title">
+                        {it.url ? (
+                          <a href={it.url} target="_blank" rel="noreferrer">
+                            {it.name}
+                          </a>
+                        ) : (
+                          it.name
                         )}
-                      </div>
+                      </span>
+                      <span className="nav-row-meta">
+                        {[
+                          it.price,
+                          it.claimed
+                            ? `Claimed${it.claimedBy ? ` · ${it.claimedBy}` : " · Anonymous"}`
+                            : null,
+                          it.notes,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {claimingId && (
-              <form className="panel stack" onSubmit={onClaim}>
-                <h2>Claim this item</h2>
-                <p className="muted">
-                  Leave your name so the owner knows who’s bringing it—or claim
-                  anonymously.
-                </p>
-                <label>
-                  Your name
-                  <input
-                    value={claimerName}
-                    onChange={(e) => setClaimerName(e.target.value)}
-                    disabled={anonymous}
-                    placeholder="Alex"
-                  />
-                </label>
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={anonymous}
-                    onChange={(e) => setAnonymous(e.target.checked)}
-                  />
-                  <span>Claim anonymously</span>
-                </label>
-                <div className="row-actions" style={{ justifyContent: "flex-start" }}>
-                  <button className="btn" type="submit" disabled={busy || (!anonymous && !claimerName.trim())}>
-                    {busy ? "Claiming…" : "Confirm claim"}
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    type="button"
-                    onClick={() => setClaimingId(null)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+                    {!it.claimed ? (
+                      <button
+                        className="btn btn-small"
+                        type="button"
+                        onClick={() => setClaiming(it)}
+                      >
+                        Claim
+                      </button>
+                    ) : (
+                      <span className="badge badge-claimed">Taken</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
             )}
           </>
         )}
       </div>
-    </Shell>
+    </AppFrame>
   );
 }

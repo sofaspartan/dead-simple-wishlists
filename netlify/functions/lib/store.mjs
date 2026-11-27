@@ -13,29 +13,23 @@ const LOCAL_DIR = join(
 let initialized = false;
 
 /**
- * Wire Blobs for classic `handler` Functions.
- * Prefer the injected NETLIFY_BLOBS_CONTEXT (has uncachedEdgeURL for strong
- * reads). Only call connectLambda when that env is missing — calling it when
- * context already exists overwrites and drops uncachedEdgeURL.
+ * Prefer injected NETLIFY_BLOBS_CONTEXT. Only connectLambda when missing —
+ * overwriting the injected context can drop fields the client needs.
  */
 export function initBlobsFromEvent(event) {
   if (initialized) return;
   initialized = true;
 
-  if (process.env.NETLIFY_BLOBS_CONTEXT) {
-    return;
-  }
-
+  if (process.env.NETLIFY_BLOBS_CONTEXT) return;
   if (!event?.blobs) return;
 
   try {
     connectLambda(event);
   } catch {
-    // Local smoke / non-Netlify: fall through to file store via getStore throw.
+    // Local smoke / non-Netlify
   }
 }
 
-/** File-backed fallback so local smoke tests work without Blobs context. */
 function localStore(name) {
   const dir = join(LOCAL_DIR, name);
 
@@ -92,13 +86,27 @@ function localStore(name) {
   };
 }
 
+async function getWithRetry(store, key, attempts = 6) {
+  let last = null;
+  for (let i = 0; i < attempts; i++) {
+    last = await store.get(key, { type: "json" });
+    if (last != null) return last;
+    if (i < attempts - 1) {
+      await new Promise((r) => setTimeout(r, 40 * (i + 1)));
+    }
+  }
+  return last;
+}
+
 function netlifyStore(name) {
-  // Strong consistency so signup → session cookie → /me works across isolates.
-  const s = getStore({ name, consistency: "strong" });
+  // Eventual consistency — strong needs uncachedEdgeURL which classic
+  // Functions context often lacks. Retry reads after writes instead.
+  const s = getStore(name);
   return {
     backend: "netlify",
     async get(key, opts = {}) {
-      return s.get(key, { type: opts.type || "json", consistency: "strong" });
+      if (opts.retry) return getWithRetry(s, key);
+      return s.get(key, { type: opts.type || "json" });
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
@@ -115,10 +123,6 @@ function netlifyStore(name) {
   };
 }
 
-/**
- * Prefer Netlify Blobs. Fall back to files only when Blobs cannot initialize
- * (local smoke without Netlify context).
- */
 export function store(name) {
   try {
     return netlifyStore(name);
@@ -129,15 +133,10 @@ export function store(name) {
 
 export function storageBackend() {
   try {
-    getStore({ name: "_probe", consistency: "strong" });
+    getStore("_probe");
     return "netlify";
-  } catch (err) {
-    try {
-      getStore("_probe");
-      return "netlify";
-    } catch {
-      return "local-file-fallback";
-    }
+  } catch {
+    return "local-file-fallback";
   }
 }
 
