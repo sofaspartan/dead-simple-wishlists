@@ -23,6 +23,7 @@ import {
   updateItem,
   updateWishlist,
 } from "./lib/wishlists.mjs";
+import { initBlobsFromEvent, storageBackend } from "./lib/store.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Credentials": "true",
@@ -81,6 +82,9 @@ function requireFields(obj, fields) {
 }
 
 export async function handler(event) {
+  // Classic Functions `handler` export needs this before getStore().
+  initBlobsFromEvent(event);
+
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }
@@ -222,12 +226,7 @@ export async function handler(event) {
     if (parts[0] === "health" && method === "GET") {
       return json(200, {
         ok: true,
-        blobs:
-          Boolean(process.env.NETLIFY_BLOBS_CONTEXT) ||
-          Boolean(process.env.NETLIFY_DEV) ||
-          Boolean(process.env.CONTEXT)
-            ? "netlify"
-            : "local-file-fallback",
+        blobs: storageBackend(),
       });
     }
 

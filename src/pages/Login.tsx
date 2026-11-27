@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
-import Shell from "../components/Shell";
+import Screen from "../components/Screen";
 
 export default function Login() {
   const { user, setUser } = useAuth();
@@ -30,42 +30,37 @@ export default function Login() {
   }
 
   return (
-    <Shell showAuth={false}>
-      <div className="panel" style={{ maxWidth: 480, margin: "0 auto" }}>
-        <h1>Log in</h1>
-        <p className="muted">Welcome back.</p>
-        <form className="form-grid" onSubmit={onSubmit} style={{ marginTop: "1.1rem" }}>
-          <label>
-            Username
-            <input
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </label>
-          {error && <p className="error">{error}</p>}
-          <button className="btn" type="submit" disabled={busy}>
-            {busy ? "Signing in…" : "Log in"}
-          </button>
-        </form>
-        <p className="muted" style={{ marginTop: "1rem" }}>
-          Forgot password? <Link to="/reset">Use a recovery code</Link>
-        </p>
-        <p className="muted">
-          New here? <Link to="/signup">Create an account</Link>
-        </p>
-      </div>
-    </Shell>
+    <Screen title="Log in" backTo="/" backLabel="Wish" largeTitle>
+      <form className="form-grid" onSubmit={onSubmit}>
+        <label>
+          Username
+          <input
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </label>
+        {error && <p className="error">{error}</p>}
+        <button className="btn btn-block" type="submit" disabled={busy}>
+          {busy ? "Signing in…" : "Log in"}
+        </button>
+      </form>
+      <p className="muted footer-links">
+        <Link to="/reset">Forgot password?</Link>
+        <br />
+        New here? <Link to="/signup">Create an account</Link>
+      </p>
+    </Screen>
   );
 }

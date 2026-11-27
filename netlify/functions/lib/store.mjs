@@ -1,20 +1,35 @@
-import { getStore } from "@netlify/blobs";
+import { connectLambda, getStore } from "@netlify/blobs";
 import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 
-const LOCAL_DIR = join(process.cwd(), ".data", "blobs");
+const ON_LAMBDA = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+const LOCAL_DIR = join(
+  ON_LAMBDA ? "/tmp" : process.cwd(),
+  ".data",
+  "blobs"
+);
 
-function blobsAvailable() {
-  return Boolean(
-    process.env.NETLIFY_BLOBS_CONTEXT ||
-      process.env.NETLIFY_DEV ||
-      process.env.CONTEXT ||
-      process.env.NETLIFY
-  );
+let initialized = false;
+
+/**
+ * Prefer injected NETLIFY_BLOBS_CONTEXT. Only connectLambda when missing —
+ * overwriting the injected context can drop fields the client needs.
+ */
+export function initBlobsFromEvent(event) {
+  if (initialized) return;
+  initialized = true;
+
+  if (process.env.NETLIFY_BLOBS_CONTEXT) return;
+  if (!event?.blobs) return;
+
+  try {
+    connectLambda(event);
+  } catch {
+    // Local smoke / non-Netlify
+  }
 }
 
-/** File-backed fallback so `netlify functions:serve` / local smoke tests work without Blobs context. */
 function localStore(name) {
   const dir = join(LOCAL_DIR, name);
 
@@ -28,6 +43,7 @@ function localStore(name) {
   }
 
   return {
+    backend: "local-file-fallback",
     async get(key, opts = {}) {
       await ensure();
       try {
@@ -70,32 +86,58 @@ function localStore(name) {
   };
 }
 
-export function store(name) {
-  if (blobsAvailable()) {
-    try {
-      const s = getStore(name);
-      return {
-        async get(key, opts = {}) {
-          return s.get(key, { type: opts.type || "json" });
-        },
-        async setJSON(key, value) {
-          await s.setJSON(key, value);
-        },
-        async set(key, value) {
-          await s.set(key, value);
-        },
-        async delete(key) {
-          await s.delete(key);
-        },
-        async list() {
-          return s.list();
-        },
-      };
-    } catch {
-      // Fall through to local store
+async function getWithRetry(store, key, attempts = 6) {
+  let last = null;
+  for (let i = 0; i < attempts; i++) {
+    last = await store.get(key, { type: "json" });
+    if (last != null) return last;
+    if (i < attempts - 1) {
+      await new Promise((r) => setTimeout(r, 40 * (i + 1)));
     }
   }
-  return localStore(name);
+  return last;
+}
+
+function netlifyStore(name) {
+  // Eventual consistency — strong needs uncachedEdgeURL which classic
+  // Functions context often lacks. Retry reads after writes instead.
+  const s = getStore(name);
+  return {
+    backend: "netlify",
+    async get(key, opts = {}) {
+      if (opts.retry) return getWithRetry(s, key);
+      return s.get(key, { type: opts.type || "json" });
+    },
+    async setJSON(key, value) {
+      await s.setJSON(key, value);
+    },
+    async set(key, value) {
+      await s.set(key, value);
+    },
+    async delete(key) {
+      await s.delete(key);
+    },
+    async list() {
+      return s.list();
+    },
+  };
+}
+
+export function store(name) {
+  try {
+    return netlifyStore(name);
+  } catch {
+    return localStore(name);
+  }
+}
+
+export function storageBackend() {
+  try {
+    getStore("_probe");
+    return "netlify";
+  } catch {
+    return "local-file-fallback";
+  }
 }
 
 export const usersStore = () => store("users");

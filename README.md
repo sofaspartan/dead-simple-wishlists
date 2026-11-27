@@ -42,11 +42,37 @@ Smoke-check storage mode: `GET /api/health` → `{ "blobs": "netlify" | "local-f
 
 ## Deploy on Netlify
 
-1. Connect this repo to Netlify (build: `npm run build`, publish: `dist`, functions: `netlify/functions` — already in `netlify.toml`).
-2. Site settings → Environment variables:
-   - `SESSION_SECRET` — long random string (required in production)
-3. Deploy. Blobs are available automatically on Netlify; no extra Blobs setup for the default store API.
-4. Optional: enable HTTPS-only / secure cookies are set when `CONTEXT=production`.
+Repo config is already set in `netlify.toml`:
+
+| Setting | Value |
+|---|---|
+| Build command | `npm run build` |
+| Publish directory | `dist` |
+| Functions | `netlify/functions` |
+| API proxy | `public/_redirects` + `netlify.toml`: `/api/*` → Functions |
+| SPA fallback | Appended to `dist/_redirects` at build time (keeps `netlify dev` clean) |
+
+### If `https://dead-simple-wishlists.netlify.app/` shows “Page not found”
+
+Production site: [https://dead-simple-wishlists.netlify.app/](https://dead-simple-wishlists.netlify.app/) (linked to this repo).
+
+1. Confirm build settings match the table above (`netlify.toml` + `public/_redirects`).
+2. **Site configuration → Environment variables** → set:
+   - `SESSION_SECRET` = a long random string (required in production; without it the app uses an insecure dev default)
+3. After deploy, verify:
+   - `/` shows **Wish**
+   - `/api/health` returns JSON like `{"ok":true,"blobs":"netlify"}` (not the HTML homepage)
+
+**CLI (optional):**
+
+```bash
+netlify login
+netlify link
+netlify env:set SESSION_SECRET "$(openssl rand -hex 32)"
+netlify deploy --prod --build
+```
+
+Blobs work automatically on a real Netlify Functions deploy. Secure cookies are set when `CONTEXT=production`.
 
 ## Env
 
