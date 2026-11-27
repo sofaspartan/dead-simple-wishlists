@@ -10,10 +10,14 @@ type Props = {
 export default function AddCard({ to, onClick, label }: Props) {
   const inner = (
     <>
-      <span className="add-card-icon" aria-hidden="true">
-        <Plus size={28} strokeWidth={2.25} />
+      <span className="add-card-media" aria-hidden="true">
+        <span className="add-card-icon">
+          <Plus size={28} strokeWidth={2.25} />
+        </span>
       </span>
-      <span className="add-card-label">{label}</span>
+      <span className="add-card-body">
+        <span className="add-card-label">{label}</span>
+      </span>
     </>
   );
 

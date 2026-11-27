@@ -149,6 +149,11 @@ textarea {
   display: flex;
   justify-content: center;
   margin: 0.35rem 0 0.15rem;
+  width: 100%;
+}
+
+.screen-title-slot .home-view-tabs {
+  max-width: none;
 }
 
 /* —— Wishlist header card (owner + public) —— */
@@ -380,93 +385,187 @@ textarea {
   min-width: 0;
 }
 
-/* —— Home view title (Wishlists / All / Unlisted) —— */
-.home-view-trigger {
-  appearance: none;
-  border: 0;
-  background: none;
-  color: inherit;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.15rem 0.35rem;
-  cursor: pointer;
-  max-width: 100%;
-}
-
-.home-view-trigger .home-view-label {
-  margin: 0;
-}
-
-.home-view-caret {
-  color: var(--accent-highlight);
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
-}
-
-.home-view-caret.open {
-  transform: rotate(180deg);
-}
-
-.home-view-root {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.home-view-backdrop {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: rgba(0, 0, 0, 0.55);
-  cursor: pointer;
-  padding: 0;
-}
-
-.home-view-sheet {
-  position: relative;
-  width: min(calc(100% - 1.4rem), calc(var(--frame-max) - 1.4rem));
-  margin: 0 auto calc(0.85rem + var(--safe-bottom) + var(--tab-h) + 0.55rem);
-  background: var(--surface-raised);
-  border-radius: 20px;
-  padding: 0.65rem;
-  z-index: 1;
+/* —— Home view tabs (Wishlists | Wishes | Unlisted) —— */
+.home-view-tabs {
   display: grid;
-  gap: 0.4rem;
-  animation: sheet-up 0.22s ease both;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: 100%;
+  max-width: 22rem;
+  margin: 0 auto;
+  padding: 0.25rem;
+  background: var(--surface);
+  border-radius: 999px;
 }
 
-.home-view-option {
+.home-view-tab {
   appearance: none;
   border: 0;
-  background: var(--surface);
-  color: var(--ink);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  width: 100%;
-  text-align: left;
-  padding: 0.95rem 1rem;
-  min-height: var(--tap);
-  border-radius: var(--radius);
-  font-size: 1.05rem;
+  background: transparent;
+  color: var(--text-secondary);
+  min-height: 2.5rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: -0.015em;
   cursor: pointer;
 }
 
-.home-view-option:hover,
-.home-view-option.active {
-  background: var(--surface-press);
+.home-view-tab:hover {
+  color: var(--text);
 }
 
-.home-view-option.active {
+.home-view-tab.active {
+  background: var(--elevated);
   color: var(--accent-highlight);
+}
+
+/* —— New wish create-mode tabs —— */
+.create-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.25rem;
+  background: var(--surface);
+  border-radius: 14px;
+}
+
+.create-mode-tab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  min-height: var(--tap);
+  padding: 0.55rem 0.4rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+}
+
+.create-mode-tab:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.create-mode-tab.active {
+  background: var(--elevated);
+  color: var(--accent-highlight);
+}
+
+.create-mode-tab:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* —— Wish full-screen detail —— */
+.wish-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.wish-detail-hero {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: min(52vh, 420px);
+  border-radius: 18px;
+  background: var(--placeholder-item);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wish-detail-placeholder {
+  display: inline-flex;
+  color: var(--accent-highlight);
+  opacity: 1;
+}
+
+.wish-detail-placeholder svg {
+  color: inherit;
+  stroke: currentColor;
+}
+
+.wish-detail-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wish-detail-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 6vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.wish-detail-meta {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.wish-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  align-self: flex-start;
+  min-height: var(--tap);
+  padding: 0.35rem 0;
+  color: var(--accent-highlight);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wish-detail-link:hover {
+  color: var(--accent);
+}
+
+.wish-detail-notes {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.add-to-list-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.add-to-list-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+  max-height: min(42vh, 320px);
+  overflow: auto;
+}
+
+.add-to-list-row {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin: 0;
+  align-items: flex-start;
+}
+
+.add-to-list-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .wish-list-fieldset {
@@ -1110,13 +1209,10 @@ select.select-field:focus-visible {
   appearance: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
   width: 100%;
-  min-height: 11.5rem;
   height: 100%;
-  padding: 1rem 0.75rem;
+  min-height: 0;
+  padding: 0;
   border-radius: 16px;
   border: 2px dashed var(--border);
   background: transparent;
@@ -1124,8 +1220,8 @@ select.select-field:focus-visible {
   cursor: pointer;
   font: inherit;
   text-decoration: none;
-  text-decoration: none;
   text-align: center;
+  overflow: hidden;
   opacity: 1;
 }
 
@@ -1134,6 +1230,16 @@ select.select-field:focus-visible {
   border-color: var(--accent-highlight);
   text-decoration: none;
   color: var(--text);
+}
+
+/* Square media region — matches .media-card-image aspect */
+.add-card-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-radius: 14px 14px 0 0;
 }
 
 .add-card-icon {
@@ -1148,10 +1254,21 @@ select.select-field:focus-visible {
   opacity: 1;
 }
 
+/* Body band — matches .media-card-body height/padding */
+.add-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.7rem 0.8rem;
+  min-height: 3.35rem;
+  box-sizing: border-box;
+}
+
 .add-card-label {
   font-weight: 600;
   font-size: 0.95rem;
   letter-spacing: -0.015em;
+  line-height: 1.3;
   color: var(--text-secondary);
 }
 
@@ -1511,7 +1628,7 @@ select.select-field:focus-visible {
 }
 
 .skeleton-card-image {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 1;
   width: 100%;
   border-radius: 0;
   background: var(--elevated);
@@ -1633,6 +1750,68 @@ select.select-field:focus-visible {
   display: grid;
   gap: 1rem;
   pointer-events: none;
+}
+
+.skeleton-wishlist-header {
+  pointer-events: none;
+}
+
+.skeleton-header-date {
+  width: 7.5rem;
+  height: 1rem;
+  border-radius: 8px;
+  background: var(--elevated);
+}
+
+.skeleton-header-action {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 14px;
+  background: var(--elevated);
+  flex-shrink: 0;
+}
+
+.skeleton-header-title {
+  width: min(12rem, 70%);
+  height: 1.65rem;
+  border-radius: 10px;
+  background: var(--elevated);
+  margin: 0.15rem auto 0;
+}
+
+.skeleton-header-avatar {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.skeleton-header-handle {
+  width: 5.5rem;
+  margin: 0 auto;
+}
+
+.skeleton-wish-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  pointer-events: none;
+}
+
+.skeleton-wish-hero {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: min(52vh, 420px);
+  border-radius: 18px;
+  background: var(--elevated);
+}
+
+.skeleton-wish-body {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.skeleton-wish-title {
+  width: 70%;
+  height: 1.5rem;
 }
 
 .skeleton-action-strip {
@@ -2165,10 +2344,6 @@ select.select-field:focus-visible {
   }
 
   .fav-search-root {
-    position: absolute;
-  }
-
-  .home-view-root {
     position: absolute;
   }
 

@@ -171,7 +171,7 @@ export default function ListsHome() {
                   "aria-label": `Actions for ${w.name}`,
                   editLabel: "Edit wish",
                   deleteLabel: "Delete wish",
-                  onEdit: () => navigate(`/app/wishes/${w.id}`),
+                  onEdit: () => navigate(`/app/wishes/${w.id}/edit`),
                   onDelete: () => void onDeleteWish(w.id, w.name),
                 }}
               />
