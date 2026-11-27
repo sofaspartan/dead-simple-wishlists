@@ -1,13 +1,27 @@
 import { Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
 import AddCard from "../components/AddCard";
+import Avatar from "../components/Avatar";
 import MediaCard from "../components/MediaCard";
 import MoreMenu from "../components/MoreMenu";
 import Screen from "../components/Screen";
+import ShareModal from "../components/ShareModal";
 import { DetailSkeleton } from "../components/Skeleton";
 import { isFavorite, toggleFavorite } from "../lib/favorites";
+
+function formatCreated(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
 
 export default function ListDetail() {
   const { id = "" } = useParams();
@@ -16,6 +30,7 @@ export default function ListDetail() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [favTick, setFavTick] = useState(0);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -71,10 +86,24 @@ export default function ListDetail() {
   void favTick;
   const favorited = isFavorite(id);
   const addWishPath = `/app/wishes/new?wishlist=${encodeURIComponent(id)}`;
+  const ownerName = wishlist.owner?.displayName || wishlist.owner?.username;
 
   return (
     <Screen
-      title={wishlist.title}
+      title={
+        <div className="list-hero">
+          <p className="list-hero-date">{formatCreated(wishlist.createdAt)}</p>
+          <h1 className="screen-title list-hero-title">{wishlist.title}</h1>
+          {wishlist.owner ? (
+            <Avatar
+              name={ownerName}
+              imageUrl={wishlist.owner.avatarUrl}
+              size="md"
+              className="list-hero-avatar"
+            />
+          ) : null}
+        </div>
+      }
       backTo="/app"
       backLabel="Home"
       tabs
@@ -101,10 +130,14 @@ export default function ListDetail() {
       ) : null}
 
       <div className="action-strip action-strip-center">
-        <Link className="btn btn-ghost btn-small" to={`/app/lists/${id}/share`}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-small"
+          onClick={() => setShareOpen(true)}
+        >
           <Share2 size={16} strokeWidth={2} aria-hidden="true" />
           Share
-        </Link>
+        </button>
       </div>
 
       {error && <p className="error">{error}</p>}
@@ -135,6 +168,8 @@ export default function ListDetail() {
           <AddCard to={addWishPath} label="Add wish" />
         </li>
       </ul>
+
+      <ShareModal open={shareOpen} wishlistId={id} onClose={() => setShareOpen(false)} />
     </Screen>
   );
 }
