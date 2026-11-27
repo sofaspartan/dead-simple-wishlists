@@ -14,9 +14,8 @@ let initialized = false;
 
 /**
  * Wire Blobs for classic `handler` Functions.
- * Prefer the injected NETLIFY_BLOBS_CONTEXT (has uncachedEdgeURL for strong
- * reads). Only call connectLambda when that env is missing — calling it when
- * context already exists overwrites and drops uncachedEdgeURL.
+ * Prefer injected NETLIFY_BLOBS_CONTEXT when present. Only call connectLambda
+ * when that env is missing (calling it otherwise can overwrite richer context).
  */
 export function initBlobsFromEvent(event) {
   if (initialized) return;
@@ -33,6 +32,21 @@ export function initBlobsFromEvent(event) {
   } catch {
     // Local smoke / non-Netlify: fall through to file store via getStore throw.
   }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Eventual-consistent get with short retries (no uncachedEdgeURL / strong mode). */
+async function getWithRetry(store, key, type = "json", attempts = 6) {
+  let last = null;
+  for (let i = 0; i < attempts; i++) {
+    last = await store.get(key, { type });
+    if (last != null) return last;
+    if (i < attempts - 1) await sleep(40 * (i + 1));
+  }
+  return last;
 }
 
 /** File-backed fallback so local smoke tests work without Blobs context. */
@@ -93,12 +107,17 @@ function localStore(name) {
 }
 
 function netlifyStore(name) {
-  // Strong consistency so signup → session cookie → /me works across isolates.
-  const s = getStore({ name, consistency: "strong" });
+  // Default eventual consistency — strong mode needs uncachedEdgeURL which
+  // classic Functions context often lacks.
+  const s = getStore(name);
   return {
     backend: "netlify",
     async get(key, opts = {}) {
-      return s.get(key, { type: opts.type || "json", consistency: "strong" });
+      const type = opts.type || "json";
+      if (opts.retry === false) {
+        return s.get(key, { type });
+      }
+      return getWithRetry(s, key, type);
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
@@ -129,15 +148,10 @@ export function store(name) {
 
 export function storageBackend() {
   try {
-    getStore({ name: "_probe", consistency: "strong" });
+    getStore("_probe");
     return "netlify";
-  } catch (err) {
-    try {
-      getStore("_probe");
-      return "netlify";
-    } catch {
-      return "local-file-fallback";
-    }
+  } catch {
+    return "local-file-fallback";
   }
 }
 
