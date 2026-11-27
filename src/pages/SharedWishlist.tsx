@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
 import AppFrame from "../components/AppFrame";
 import MediaCard from "../components/MediaCard";
+import ShareModal from "../components/ShareModal";
 import { CardGridSkeleton } from "../components/Skeleton";
 import WishlistHeaderCard from "../components/WishlistHeaderCard";
 
@@ -16,6 +17,7 @@ export default function SharedWishlist() {
   const [claimerName, setClaimerName] = useState("");
   const [anonymous, setAnonymous] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -125,6 +127,7 @@ export default function SharedWishlist() {
               createdAt={wishlist.createdAt}
               owner={wishlist.owner}
               description={wishlist.description}
+              onShare={() => setShareOpen(true)}
             />
             {error && <p className="error">{error}</p>}
             {wishlist.items.length === 0 ? (
@@ -179,6 +182,13 @@ export default function SharedWishlist() {
                 ))}
               </ul>
             )}
+
+            <ShareModal
+              open={shareOpen}
+              onClose={() => setShareOpen(false)}
+              shareSlug={slug}
+              title={wishlist.title}
+            />
           </>
         )}
       </div>

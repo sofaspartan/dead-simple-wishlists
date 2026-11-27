@@ -6,18 +6,28 @@ import { ShareSkeleton } from "./Skeleton";
 
 type Props = {
   open: boolean;
-  wishlistId: string;
   onClose: () => void;
+  /** Owner path: load share slug via authenticated wishlist id */
+  wishlistId?: string;
+  /** Public path: known slug + title (no auth fetch) */
+  shareSlug?: string;
+  title?: string;
 };
 
 function portalTarget(): HTMLElement {
   return document.querySelector<HTMLElement>(".phone-frame") ?? document.body;
 }
 
-export default function ShareModal({ open, wishlistId, onClose }: Props) {
+export default function ShareModal({
+  open,
+  onClose,
+  wishlistId,
+  shareSlug,
+  title: titleProp,
+}: Props) {
   const titleId = useId();
-  const [slug, setSlug] = useState("");
-  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState(shareSlug || "");
+  const [title, setTitle] = useState(titleProp || "");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,9 +43,23 @@ export default function ShareModal({ open, wishlistId, onClose }: Props) {
     }
     document.addEventListener("keydown", onKey);
 
-    setLoading(true);
-    setError("");
     setCopied(false);
+    setError("");
+
+    if (shareSlug) {
+      setSlug(shareSlug);
+      setTitle(titleProp || "");
+      setLoading(false);
+      return () => document.removeEventListener("keydown", onKey);
+    }
+
+    if (!wishlistId) {
+      setError("Missing share info");
+      setLoading(false);
+      return () => document.removeEventListener("keydown", onKey);
+    }
+
+    setLoading(true);
     void (async () => {
       try {
         const res = await api.getWishlist(wishlistId);
@@ -49,7 +73,7 @@ export default function ShareModal({ open, wishlistId, onClose }: Props) {
     })();
 
     return () => document.removeEventListener("keydown", onKey);
-  }, [open, wishlistId, onClose]);
+  }, [open, wishlistId, shareSlug, titleProp, onClose]);
 
   if (!open || typeof document === "undefined") return null;
 
