@@ -1,4 +1,4 @@
-import { connectLambda, getStore } from "@netlify/blobs";
+import { connectLambda, getStore, setEnvironmentContext } from "@netlify/blobs";
 import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
@@ -10,16 +10,44 @@ const LOCAL_DIR = join(
   "blobs"
 );
 
+let useStrong = false;
+
 /**
- * Lambda compatibility mode requires connectLambda(event) before getStore.
- * Call on every request (idempotent enough for our purposes).
+ * Configure Blobs from the Lambda event. Prefer full context (including
+ * uncachedEdgeURL when the platform sends it) so reads can be strongly
+ * consistent — edge-only access can take up to ~60s to become visible.
  */
 export function initBlobsFromEvent(event) {
   if (!event?.blobs) return;
   try {
-    connectLambda(event);
+    const data = JSON.parse(Buffer.from(event.blobs, "base64").toString("utf8"));
+    const headers = event.headers || {};
+    const siteID = headers["x-nf-site-id"] || headers["X-Nf-Site-Id"];
+    const deployID = headers["x-nf-deploy-id"] || headers["X-Nf-Deploy-Id"];
+    const uncachedEdgeURL =
+      data.uncached_edge_url ||
+      data.uncachedEdgeURL ||
+      data.uncached_url ||
+      data.uncachedURL ||
+      null;
+
+    setEnvironmentContext({
+      siteID,
+      deployID,
+      token: data.token,
+      edgeURL: data.url,
+      uncachedEdgeURL: uncachedEdgeURL || undefined,
+      primaryRegion: data.primary_region || data.primaryRegion,
+      apiURL: data.api_url || data.apiURL,
+    });
+    useStrong = Boolean(uncachedEdgeURL);
   } catch {
-    // Local smoke without a real Lambda blobs payload
+    try {
+      connectLambda(event);
+      useStrong = false;
+    } catch {
+      // Local smoke without a real Lambda blobs payload
+    }
   }
 }
 
@@ -79,13 +107,20 @@ function localStore(name) {
   };
 }
 
-async function getWithRetry(store, key, attempts = 8) {
+async function getWithRetry(store, key, attempts = 10) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
-    last = await store.get(key, { type: "json" });
+    try {
+      last = await store.get(key, {
+        type: "json",
+        ...(useStrong ? { consistency: "strong" } : {}),
+      });
+    } catch {
+      last = await store.get(key, { type: "json" });
+    }
     if (last != null) return last;
     if (i < attempts - 1) {
-      await new Promise((r) => setTimeout(r, 50 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 80 * (i + 1)));
     }
   }
   return last;
@@ -97,7 +132,14 @@ function netlifyStore(name) {
     backend: "netlify",
     async get(key, opts = {}) {
       if (opts.retry) return getWithRetry(s, key);
-      return s.get(key, { type: opts.type || "json" });
+      try {
+        return await s.get(key, {
+          type: opts.type || "json",
+          ...(useStrong ? { consistency: "strong" } : {}),
+        });
+      } catch {
+        return s.get(key, { type: opts.type || "json" });
+      }
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
@@ -131,7 +173,10 @@ export function storageBackend() {
   }
 }
 
-/** Write+read probe used by /api/health to verify persistence. */
+export function blobsUsesStrong() {
+  return useStrong;
+}
+
 export async function blobsRoundtrip() {
   const probe = store("health");
   const key = `ping_${Date.now()}`;
