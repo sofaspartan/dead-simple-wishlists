@@ -12,7 +12,7 @@ type Props = {
   variant?: "list" | "item";
   /** Optional remote image */
   imageUrl?: string;
-  /** Creator shown bottom-right on wishlist cards */
+  /** Creator shown bottom-right of the text area on wishlist cards */
   owner?: WishlistOwner | null;
   menu?: MoreMenuProps;
   footer?: React.ReactNode;
@@ -60,24 +60,26 @@ export default function MediaCard({
             <MoreMenu {...menu} />
           </div>
         ) : null}
-        {variant === "list" && owner ? (
-          <div className="media-card-avatar">
-            <Avatar
-              name={owner.displayName || owner.username}
-              imageUrl={owner.avatarUrl}
-              size="sm"
-            />
-          </div>
-        ) : null}
       </div>
       <div className="media-card-body">
-        {to ? (
-          <Link to={to} className="media-card-body-link">
-            {text}
-          </Link>
-        ) : (
-          text
-        )}
+        <div className="media-card-body-row">
+          {to ? (
+            <Link to={to} className="media-card-body-link">
+              {text}
+            </Link>
+          ) : (
+            <div className="media-card-body-text">{text}</div>
+          )}
+          {variant === "list" && owner ? (
+            <div className="media-card-avatar">
+              <Avatar
+                name={owner.displayName || owner.username}
+                imageUrl={owner.avatarUrl}
+                size="sm"
+              />
+            </div>
+          ) : null}
+        </div>
         {footer}
       </div>
     </article>
