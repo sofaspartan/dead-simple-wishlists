@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
 import AppFrame from "../components/AppFrame";
+import MediaCard from "../components/MediaCard";
 import TopBar from "../components/TopBar";
 
 export default function SharedWishlist() {
@@ -125,27 +126,20 @@ export default function SharedWishlist() {
               {wishlist.title}
             </h1>
             {wishlist.description ? (
-              <p className="muted lead">{wishlist.description}</p>
+              <p className="muted lead lead-center">{wishlist.description}</p>
             ) : null}
             {error && <p className="error">{error}</p>}
             {wishlist.items.length === 0 ? (
               <p className="empty">Nothing on this list yet.</p>
             ) : (
-              <ul className="nav-list">
+              <ul className="card-grid">
                 {wishlist.items.map((it) => (
-                  <li key={it.id} className="nav-row static-row">
-                    <div>
-                      <span className="nav-row-title">
-                        {it.url ? (
-                          <a href={it.url} target="_blank" rel="noreferrer">
-                            {it.name}
-                          </a>
-                        ) : (
-                          it.name
-                        )}
-                      </span>
-                      <span className="nav-row-meta">
-                        {[
+                  <li key={it.id}>
+                    <MediaCard
+                      title={it.name}
+                      variant="item"
+                      meta={
+                        [
                           it.price,
                           it.claimed
                             ? `Claimed${it.claimedBy ? ` · ${it.claimedBy}` : " · Anonymous"}`
@@ -153,21 +147,36 @@ export default function SharedWishlist() {
                           it.notes,
                         ]
                           .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    </div>
-                    {!it.claimed ? (
-                      <button
-                        className="btn btn-small"
-                        type="button"
-                        onClick={() => setClaiming(it)}
-                      >
-                        <Gift size={15} strokeWidth={2} aria-hidden="true" />
-                        Claim
-                      </button>
-                    ) : (
-                      <span className="badge badge-claimed">Taken</span>
-                    )}
+                          .join(" · ") || undefined
+                      }
+                      footer={
+                        <div className="claim-card-footer">
+                          {it.url ? (
+                            <a
+                              className="text-action"
+                              href={it.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ marginBottom: "0.35rem" }}
+                            >
+                              Open link
+                            </a>
+                          ) : null}
+                          {!it.claimed ? (
+                            <button
+                              className="btn btn-small btn-block"
+                              type="button"
+                              onClick={() => setClaiming(it)}
+                            >
+                              <Gift size={15} strokeWidth={2} aria-hidden="true" />
+                              Claim
+                            </button>
+                          ) : (
+                            <span className="badge badge-claimed">Taken</span>
+                          )}
+                        </div>
+                      }
+                    />
                   </li>
                 ))}
               </ul>

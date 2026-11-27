@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { useAuth } from "./auth";
 import Account from "./pages/Account";
+import Favorites from "./pages/Favorites";
 import ItemForm from "./pages/ItemForm";
 import Landing from "./pages/Landing";
 import ListCreate from "./pages/ListCreate";
@@ -10,6 +11,7 @@ import ListShare from "./pages/ListShare";
 import ListsHome from "./pages/ListsHome";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import Search from "./pages/Search";
 import SharedWishlist from "./pages/SharedWishlist";
 import Signup from "./pages/Signup";
 
@@ -60,6 +62,22 @@ export default function App() {
         element={
           <Protected>
             <Account />
+          </Protected>
+        }
+      />
+      <Route
+        path="/app/search"
+        element={
+          <Protected>
+            <Search />
+          </Protected>
+        }
+      />
+      <Route
+        path="/app/favorites"
+        element={
+          <Protected>
+            <Favorites />
           </Protected>
         }
       />

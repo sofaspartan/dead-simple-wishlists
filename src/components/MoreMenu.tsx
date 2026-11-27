@@ -1,5 +1,10 @@
-import { EllipsisVertical, Pencil, Trash2 } from "lucide-react";
+import { EllipsisVertical, Heart, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+
+export type MoreMenuExtra = {
+  label: string;
+  onSelect: () => void;
+};
 
 export type MoreMenuProps = {
   "aria-label"?: string;
@@ -7,6 +12,8 @@ export type MoreMenuProps = {
   onDelete: () => void;
   editLabel?: string;
   deleteLabel?: string;
+  /** Optional third action (e.g. Favorite) */
+  extra?: MoreMenuExtra;
 };
 
 export default function MoreMenu({
@@ -15,6 +22,7 @@ export default function MoreMenu({
   onDelete,
   editLabel = "Edit",
   deleteLabel = "Delete",
+  extra,
 }: MoreMenuProps) {
   const [open, setOpen] = useState(false);
   const [openUp, setOpenUp] = useState(false);
@@ -97,6 +105,22 @@ export default function MoreMenu({
             <Pencil size={16} strokeWidth={2} aria-hidden="true" />
             {editLabel}
           </button>
+          {extra ? (
+            <button
+              type="button"
+              className="more-menu-item"
+              role="menuitem"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpen(false);
+                extra.onSelect();
+              }}
+            >
+              <Heart size={16} strokeWidth={2} aria-hidden="true" />
+              {extra.label}
+            </button>
+          ) : null}
           <button
             type="button"
             className="more-menu-item more-menu-item-danger"

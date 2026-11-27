@@ -1,15 +1,16 @@
-import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
-import MoreMenu from "../components/MoreMenu";
+import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
+import { isFavorite, toggleFavorite } from "../lib/favorites";
 
 export default function ListsHome() {
   const navigate = useNavigate();
   const [wishlists, setWishlists] = useState<Wishlist[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [favTick, setFavTick] = useState(0);
 
   useEffect(() => {
     void (async () => {
@@ -36,48 +37,55 @@ export default function ListsHome() {
   }
 
   return (
-    <Screen title="Lists" tabs largeTitle>
-      <div className="action-strip action-strip-center">
-        <Link className="btn btn-small" to="/app/new">
-          <Plus size={16} strokeWidth={2.25} aria-hidden="true" />
-          New
-        </Link>
-      </div>
-
+    <Screen title="Home" tabs largeTitle>
       {error && <p className="error">{error}</p>}
       {loading ? (
         <p className="muted">Loading…</p>
       ) : wishlists.length === 0 ? (
         <div className="empty-state">
           <p className="empty-title">No lists yet</p>
-          <p className="muted">Create a wishlist, add gifts, share one link.</p>
+          <p className="muted">Tap + below to create a wishlist.</p>
           <Link className="btn" to="/app/new">
-            <Plus size={18} strokeWidth={2.25} aria-hidden="true" />
             Create a list
           </Link>
         </div>
       ) : (
-        <ul className="nav-list">
-          {wishlists.map((w) => (
-            <li key={w.id}>
-              <div className="nav-row">
-                <Link className="nav-row-main" to={`/app/lists/${w.id}`}>
-                  <span className="nav-row-title">{w.title}</span>
-                  <span className="nav-row-meta">
-                    {w.items.length} item{w.items.length === 1 ? "" : "s"}
-                    {w.items.some((i) => i.claimed)
-                      ? ` · ${w.items.filter((i) => i.claimed).length} claimed`
-                      : ""}
-                  </span>
-                </Link>
-                <MoreMenu
-                  aria-label={`Actions for ${w.title}`}
-                  onEdit={() => navigate(`/app/lists/${w.id}/edit`)}
-                  onDelete={() => void onDeleteList(w.id, w.title)}
+        <ul className="card-grid">
+          {wishlists.map((w) => {
+            void favTick;
+            const favorited = isFavorite(w.id);
+            return (
+              <li key={w.id}>
+                <MediaCard
+                  to={`/app/lists/${w.id}`}
+                  title={w.title}
+                  variant="list"
+                  meta={
+                    [
+                      `${w.items.length} item${w.items.length === 1 ? "" : "s"}`,
+                      w.items.some((i) => i.claimed)
+                        ? `${w.items.filter((i) => i.claimed).length} claimed`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")
+                  }
+                  menu={{
+                    "aria-label": `Actions for ${w.title}`,
+                    onEdit: () => navigate(`/app/lists/${w.id}/edit`),
+                    onDelete: () => void onDeleteList(w.id, w.title),
+                    extra: {
+                      label: favorited ? "Unfavorite" : "Favorite",
+                      onSelect: () => {
+                        toggleFavorite(w.id);
+                        setFavTick((n) => n + 1);
+                      },
+                    },
+                  }}
                 />
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </Screen>
