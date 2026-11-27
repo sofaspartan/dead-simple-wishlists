@@ -23,7 +23,7 @@ import {
   updateItem,
   updateWishlist,
 } from "./lib/wishlists.mjs";
-import { storageBackend } from "./lib/store.mjs";
+import { initBlobsFromEvent, storageBackend } from "./lib/store.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Credentials": "true",
@@ -82,6 +82,9 @@ function requireFields(obj, fields) {
 }
 
 export async function handler(event) {
+  // Classic Functions `handler` export needs this before getStore().
+  initBlobsFromEvent(event);
+
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: corsHeaders, body: "" };
   }

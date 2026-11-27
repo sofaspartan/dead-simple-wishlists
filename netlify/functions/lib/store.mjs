@@ -1,9 +1,27 @@
-import { getStore } from "@netlify/blobs";
+import { connectLambda, getStore } from "@netlify/blobs";
 import { mkdir, readFile, writeFile, unlink, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
 
-const LOCAL_DIR = join(process.cwd(), ".data", "blobs");
+const ON_LAMBDA = Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME);
+const LOCAL_DIR = join(
+  ON_LAMBDA ? "/tmp" : process.cwd(),
+  ".data",
+  "blobs"
+);
+
+let lambdaConnected = false;
+
+/** Required for classic `export async function handler(event)` Functions. */
+export function initBlobsFromEvent(event) {
+  if (!event || lambdaConnected) return;
+  try {
+    connectLambda(event);
+    lambdaConnected = true;
+  } catch {
+    // Outside Netlify (e.g. smoke script) connectLambda is unavailable/unneeded.
+  }
+}
 
 /** File-backed fallback so local smoke tests work without Blobs context. */
 function localStore(name) {
@@ -85,9 +103,8 @@ function netlifyStore(name) {
 }
 
 /**
- * Prefer Netlify Blobs whenever getStore() works (deployed Functions inject
- * context). Only use the file fallback when Blobs cannot initialize — e.g.
- * bare `node scripts/smoke.mjs` outside Netlify.
+ * Prefer Netlify Blobs after connectLambda(event). Fall back to files only
+ * when Blobs cannot initialize (local smoke without Netlify context).
  */
 export function store(name) {
   try {
