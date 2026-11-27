@@ -688,6 +688,29 @@ textarea {
   min-width: 0;
 }
 
+.edit-picker {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.edit-picker-label {
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.edit-picker-search {
+  margin: 0;
+}
+
+.edit-modal .search-field input,
+.edit-modal .search-field input:focus,
+.edit-modal .search-field input:focus-visible {
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
 .wish-list-fieldset {
   margin: 0;
   padding: 0.85rem 1rem;
@@ -699,10 +722,14 @@ textarea {
 }
 
 .wish-list-fieldset legend {
+  /* Avoid floating/overlapping the card edge — title lives outside when possible. */
+  float: none;
+  width: 100%;
   padding: 0;
   margin: 0 0 0.35rem;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.95rem;
+  position: static;
 }
 
 .back-link {
