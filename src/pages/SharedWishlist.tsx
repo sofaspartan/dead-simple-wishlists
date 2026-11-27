@@ -3,10 +3,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, type Wishlist, type WishlistItem } from "../api";
 import AppFrame from "../components/AppFrame";
-import Avatar from "../components/Avatar";
 import MediaCard from "../components/MediaCard";
 import { CardGridSkeleton } from "../components/Skeleton";
-import TopBar from "../components/TopBar";
+import WishlistHeaderCard from "../components/WishlistHeaderCard";
 
 export default function SharedWishlist() {
   const { slug = "" } = useParams();
@@ -69,8 +68,7 @@ export default function SharedWishlist() {
         <div className="screen-body">
           <p className="lead-strong">{claiming.name}</p>
           <p className="muted lead">
-            Leave your name so the owner knows who’s bringing it—or claim
-            anonymously.
+            Leave your name so the owner knows who’s bringing it—or claim anonymously.
           </p>
           <form className="form-grid" onSubmit={onClaim}>
             <label>
@@ -108,7 +106,6 @@ export default function SharedWishlist() {
 
   return (
     <AppFrame>
-      <TopBar title="Shared wishlist" large />
       <div className="screen-body">
         {loading ? (
           <CardGridSkeleton label="Loading shared wishlist" />
@@ -123,23 +120,12 @@ export default function SharedWishlist() {
           </>
         ) : (
           <>
-            <p className="eyebrow">Shared wishlist</p>
-            {wishlist.owner ? (
-              <div className="shared-owner">
-                <Avatar
-                  name={wishlist.owner.displayName || wishlist.owner.username}
-                  imageUrl={wishlist.owner.avatarUrl}
-                  size="md"
-                />
-                <span className="muted">@{wishlist.owner.username}</span>
-              </div>
-            ) : null}
-            <h1 className="screen-title" style={{ marginTop: 0 }}>
-              {wishlist.title}
-            </h1>
-            {wishlist.description ? (
-              <p className="muted lead lead-center">{wishlist.description}</p>
-            ) : null}
+            <WishlistHeaderCard
+              title={wishlist.title}
+              createdAt={wishlist.createdAt}
+              owner={wishlist.owner}
+              description={wishlist.description}
+            />
             {error && <p className="error">{error}</p>}
             {wishlist.items.length === 0 ? (
               <p className="empty">Nothing on this wishlist yet.</p>
