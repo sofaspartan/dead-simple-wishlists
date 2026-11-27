@@ -78,7 +78,7 @@ export async function createUser(username, password) {
 
 export async function loginUser(username, password) {
   const users = usersStore();
-  const user = await users.get(username.toLowerCase());
+  const user = await users.get(username.toLowerCase(), { retry: true });
   if (!user || !verifyPassword(password, user.passwordSalt, user.passwordHash)) {
     const err = new Error("Invalid username or password");
     err.status = 401;

@@ -10,23 +10,16 @@ const LOCAL_DIR = join(
   "blobs"
 );
 
-let initialized = false;
-
 /**
- * Prefer injected NETLIFY_BLOBS_CONTEXT. Only connectLambda when missing —
- * overwriting the injected context can drop fields the client needs.
+ * Lambda compatibility mode requires connectLambda(event) before getStore.
+ * Call on every request (idempotent enough for our purposes).
  */
 export function initBlobsFromEvent(event) {
-  if (initialized) return;
-  initialized = true;
-
-  if (process.env.NETLIFY_BLOBS_CONTEXT) return;
   if (!event?.blobs) return;
-
   try {
     connectLambda(event);
   } catch {
-    // Local smoke / non-Netlify
+    // Local smoke without a real Lambda blobs payload
   }
 }
 
@@ -86,21 +79,19 @@ function localStore(name) {
   };
 }
 
-async function getWithRetry(store, key, attempts = 6) {
+async function getWithRetry(store, key, attempts = 8) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
     last = await store.get(key, { type: "json" });
     if (last != null) return last;
     if (i < attempts - 1) {
-      await new Promise((r) => setTimeout(r, 40 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 50 * (i + 1)));
     }
   }
   return last;
 }
 
 function netlifyStore(name) {
-  // Eventual consistency — strong needs uncachedEdgeURL which classic
-  // Functions context often lacks. Retry reads after writes instead.
   const s = getStore(name);
   return {
     backend: "netlify",
@@ -138,6 +129,20 @@ export function storageBackend() {
   } catch {
     return "local-file-fallback";
   }
+}
+
+/** Write+read probe used by /api/health to verify persistence. */
+export async function blobsRoundtrip() {
+  const probe = store("health");
+  const key = `ping_${Date.now()}`;
+  await probe.setJSON(key, { ok: true });
+  const read = await probe.get(key, { retry: true });
+  try {
+    await probe.delete(key);
+  } catch {
+    /* ignore */
+  }
+  return Boolean(read?.ok);
 }
 
 export const usersStore = () => store("users");
