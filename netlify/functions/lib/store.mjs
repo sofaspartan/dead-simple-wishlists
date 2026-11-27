@@ -15,7 +15,7 @@ let useStrong = false;
 /**
  * Configure Blobs from the Lambda event. Prefer full context (including
  * uncachedEdgeURL when the platform sends it) so reads can be strongly
- * consistent — edge-only access can take up to ~60s to become visible.
+ * consistent — edge-only access can take tens of seconds to become visible.
  */
 export function initBlobsFromEvent(event) {
   if (!event?.blobs) return;
@@ -107,20 +107,25 @@ function localStore(name) {
   };
 }
 
-async function getWithRetry(store, key, attempts = 10) {
+/**
+ * Eventual Blobs can take several seconds to become visible across isolates.
+ * Prefer strong reads when uncachedEdgeURL is available; otherwise retry long
+ * enough that signup → /me and login work without a long client-side wait.
+ */
+async function getWithRetry(store, key, type = "json", attempts = 16) {
   let last = null;
   for (let i = 0; i < attempts; i++) {
     try {
       last = await store.get(key, {
-        type: "json",
+        type,
         ...(useStrong ? { consistency: "strong" } : {}),
       });
     } catch {
-      last = await store.get(key, { type: "json" });
+      last = await store.get(key, { type });
     }
     if (last != null) return last;
     if (i < attempts - 1) {
-      await new Promise((r) => setTimeout(r, 80 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 250));
     }
   }
   return last;
@@ -131,18 +136,24 @@ function netlifyStore(name) {
   return {
     backend: "netlify",
     async get(key, opts = {}) {
-      if (opts.retry) return getWithRetry(s, key);
-      try {
-        return await s.get(key, {
-          type: opts.type || "json",
-          ...(useStrong ? { consistency: "strong" } : {}),
-        });
-      } catch {
-        return s.get(key, { type: opts.type || "json" });
+      const type = opts.type || "json";
+      // retry:false for existence probes that expect a miss
+      if (opts.retry === false) {
+        try {
+          return await s.get(key, {
+            type,
+            ...(useStrong ? { consistency: "strong" } : {}),
+          });
+        } catch {
+          return s.get(key, { type });
+        }
       }
+      return getWithRetry(s, key, type);
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
+      // Barrier: don't return until the write is readable (or retries exhaust).
+      await getWithRetry(s, key, "json");
     },
     async set(key, value) {
       await s.set(key, value);
@@ -181,7 +192,7 @@ export async function blobsRoundtrip() {
   const probe = store("health");
   const key = `ping_${Date.now()}`;
   await probe.setJSON(key, { ok: true });
-  const read = await probe.get(key, { retry: true });
+  const read = await probe.get(key);
   try {
     await probe.delete(key);
   } catch {

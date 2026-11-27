@@ -54,7 +54,7 @@ export async function createWishlist(userId, { title, description }) {
   const slugs = slugIndexStore();
   const id = generateId("wl");
   let shareSlug = generateShareSlug();
-  while (await slugs.get(shareSlug)) {
+  while (await slugs.get(shareSlug, { retry: false })) {
     shareSlug = generateShareSlug();
   }
   const now = new Date().toISOString();
