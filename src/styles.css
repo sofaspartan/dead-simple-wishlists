@@ -151,29 +151,94 @@ textarea {
   margin: 0.35rem 0 0.15rem;
 }
 
-.list-hero {
+/* —— Wishlist header card (owner + public) —— */
+.wishlist-header-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 1rem 1rem 1.15rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.55rem;
   text-align: center;
-  width: 100%;
 }
 
-.list-hero-date {
+.wishlist-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.wishlist-header-date {
   margin: 0;
   color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.02em;
+  text-align: left;
 }
 
-.list-hero-title {
+.wishlist-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: auto;
+}
+
+.wishlist-header-share {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.wishlist-header-share:hover {
+  background: var(--elevated);
+}
+
+.wishlist-header-actions .more-menu-trigger {
+  color: var(--text);
+}
+
+.wishlist-header-title {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.55rem, 5.5vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  max-width: 18ch;
 }
 
-.list-hero-avatar {
-  margin-top: 0.15rem;
+.wishlist-header-owner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.wishlist-header-handle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.wishlist-header-desc {
+  margin: 0.15rem 0 0;
+  line-height: 1.45;
+  font-size: 0.98rem;
+  max-width: 36ch;
 }
 
 /* —— Centered app modals (search / share) —— */
