@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  directory = "netlify/functions"
+
+[dev]
+  command = "npm run dev:ui"
+  targetPort = 5173
+  port = 8888
+  autoLaunch = false
+
+# API only here — SPA fallback lives in public/_redirects (copied into dist on
+# build). Keeping /* → index.html out of netlify.toml avoids Netlify Dev
+# rewriting Vite module URLs (/@vite/client, /src/*) to HTML.
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "20"
