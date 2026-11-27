@@ -6,10 +6,11 @@ import {
   hashToken,
   verifyPassword,
 } from "./crypto.mjs";
-import { sessionsStore, usersStore } from "./store.mjs";
+import { avatarsStore, sessionsStore, usersStore } from "./store.mjs";
 
 const SESSION_DAYS = 30;
 const COOKIE_NAME = "wish_session";
+const MAX_AVATAR_BYTES = 500_000;
 
 export { COOKIE_NAME };
 
@@ -153,6 +154,12 @@ export async function resetPasswordWithCode(username, recoveryCode, newPassword)
   return publicUser(user);
 }
 
+export function avatarUrlFor(user) {
+  if (!user?.hasAvatar) return null;
+  const v = user.avatarVersion || 0;
+  return `/api/avatars/${user.id}?v=${v}`;
+}
+
 export function publicUser(user) {
   return {
     id: user.id,
@@ -160,5 +167,105 @@ export function publicUser(user) {
     displayName: user.displayName,
     recoveryCodesRemaining: (user.recoveryHashes || []).length,
     createdAt: user.createdAt,
+    avatarUrl: avatarUrlFor(user),
+  };
+}
+
+export function publicOwner(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    avatarUrl: avatarUrlFor(user),
+  };
+}
+
+export async function getRawUserById(userId) {
+  if (!userId) return null;
+  const users = usersStore();
+  const index = await users.get(`id:${userId}`, { retry: true });
+  if (!index?.username) return null;
+  return users.get(index.username, { retry: true });
+}
+
+export async function getOwnerById(userId) {
+  const user = await getRawUserById(userId);
+  return publicOwner(user);
+}
+
+function parseDataUrl(image) {
+  if (typeof image !== "string" || !image.startsWith("data:")) {
+    const err = new Error("Avatar must be a data URL");
+    err.status = 400;
+    throw err;
+  }
+  const match = /^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/i.exec(
+    image.trim()
+  );
+  if (!match) {
+    const err = new Error("Avatar must be a JPEG, PNG, or WebP image");
+    err.status = 400;
+    throw err;
+  }
+  const contentType = match[1].toLowerCase().replace("image/jpg", "image/jpeg");
+  const base64 = match[2].replace(/\s+/g, "");
+  const bytes = Buffer.from(base64, "base64");
+  if (!bytes.length) {
+    const err = new Error("Avatar image is empty");
+    err.status = 400;
+    throw err;
+  }
+  if (bytes.length > MAX_AVATAR_BYTES) {
+    const err = new Error("Avatar is too large (max 500KB)");
+    err.status = 400;
+    throw err;
+  }
+  return { contentType, base64, bytes };
+}
+
+export async function setUserAvatar(userId, imageDataUrl) {
+  const users = usersStore();
+  const user = await getRawUserById(userId);
+  if (!user) {
+    const err = new Error("Not signed in");
+    err.status = 401;
+    throw err;
+  }
+  const { contentType, base64 } = parseDataUrl(imageDataUrl);
+  await avatarsStore().setJSON(userId, { contentType, data: base64 });
+  user.hasAvatar = true;
+  user.avatarVersion = Date.now();
+  await users.setJSON(user.username, user);
+  return publicUser(user);
+}
+
+export async function clearUserAvatar(userId) {
+  const users = usersStore();
+  const user = await getRawUserById(userId);
+  if (!user) {
+    const err = new Error("Not signed in");
+    err.status = 401;
+    throw err;
+  }
+  try {
+    await avatarsStore().delete(userId);
+  } catch {
+    /* ignore */
+  }
+  user.hasAvatar = false;
+  user.avatarVersion = Date.now();
+  await users.setJSON(user.username, user);
+  return publicUser(user);
+}
+
+export async function getAvatarRecord(userId) {
+  const user = await getRawUserById(userId);
+  if (!user?.hasAvatar) return null;
+  const record = await avatarsStore().get(userId, { retry: true });
+  if (!record?.data) return null;
+  return {
+    contentType: record.contentType || "image/jpeg",
+    data: record.data,
   };
 }

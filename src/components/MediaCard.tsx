@@ -1,5 +1,7 @@
 import { Gift, LayoutList } from "lucide-react";
 import { Link } from "react-router-dom";
+import type { WishlistOwner } from "../api";
+import Avatar from "./Avatar";
 import MoreMenu, { type MoreMenuProps } from "./MoreMenu";
 
 type Props = {
@@ -10,6 +12,8 @@ type Props = {
   variant?: "list" | "item";
   /** Optional remote image */
   imageUrl?: string;
+  /** Creator shown bottom-right on wishlist cards */
+  owner?: WishlistOwner | null;
   menu?: MoreMenuProps;
   footer?: React.ReactNode;
 };
@@ -20,6 +24,7 @@ export default function MediaCard({
   meta,
   variant = "list",
   imageUrl,
+  owner,
   menu,
   footer,
 }: Props) {
@@ -53,6 +58,15 @@ export default function MediaCard({
         {menu ? (
           <div className="media-card-menu">
             <MoreMenu {...menu} />
+          </div>
+        ) : null}
+        {variant === "list" && owner ? (
+          <div className="media-card-avatar">
+            <Avatar
+              name={owner.displayName || owner.username}
+              imageUrl={owner.avatarUrl}
+              size="sm"
+            />
           </div>
         ) : null}
       </div>

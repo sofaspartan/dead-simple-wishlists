@@ -150,3 +150,4 @@ export const sessionsStore = () => store("sessions");
 export const wishlistsStore = () => store("wishlists");
 export const slugIndexStore = () => store("slug-index");
 export const userWishlistsStore = () => store("user-wishlists");
+export const avatarsStore = () => store("avatars");

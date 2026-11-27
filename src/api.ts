@@ -4,6 +4,14 @@ export type User = {
   displayName: string;
   recoveryCodesRemaining: number;
   createdAt: string;
+  avatarUrl?: string | null;
+};
+
+export type WishlistOwner = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl?: string | null;
 };
 
 export type WishlistItem = {
@@ -27,6 +35,7 @@ export type Wishlist = {
   createdAt: string;
   updatedAt: string;
   ownerId?: string;
+  owner?: WishlistOwner | null;
   items: WishlistItem[];
 };
 
@@ -65,6 +74,16 @@ export const api = {
     request<{ user: User }>("/auth/reset", {
       method: "POST",
       body: JSON.stringify({ username, recoveryCode, newPassword }),
+    }),
+  uploadAvatar: (imageDataUrl: string) =>
+    request<{ user: User }>("/auth/avatar", {
+      method: "POST",
+      body: JSON.stringify({ image: imageDataUrl }),
+    }),
+  clearAvatar: () =>
+    request<{ user: User }>("/auth/avatar", {
+      method: "DELETE",
+      body: "{}",
     }),
   listWishlists: () => request<{ wishlists: Wishlist[] }>("/wishlists"),
   createWishlist: (title: string, description = "") =>
