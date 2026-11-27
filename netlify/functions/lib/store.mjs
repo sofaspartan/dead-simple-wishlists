@@ -10,16 +10,28 @@ const LOCAL_DIR = join(
   "blobs"
 );
 
-let lambdaConnected = false;
+let initialized = false;
 
-/** Required for classic `export async function handler(event)` Functions. */
+/**
+ * Wire Blobs for classic `handler` Functions.
+ * Prefer the injected NETLIFY_BLOBS_CONTEXT (has uncachedEdgeURL for strong
+ * reads). Only call connectLambda when that env is missing — calling it when
+ * context already exists overwrites and drops uncachedEdgeURL.
+ */
 export function initBlobsFromEvent(event) {
-  if (!event || lambdaConnected) return;
+  if (initialized) return;
+  initialized = true;
+
+  if (process.env.NETLIFY_BLOBS_CONTEXT) {
+    return;
+  }
+
+  if (!event?.blobs) return;
+
   try {
     connectLambda(event);
-    lambdaConnected = true;
   } catch {
-    // Outside Netlify (e.g. smoke script) connectLambda is unavailable/unneeded.
+    // Local smoke / non-Netlify: fall through to file store via getStore throw.
   }
 }
 
@@ -81,11 +93,12 @@ function localStore(name) {
 }
 
 function netlifyStore(name) {
-  const s = getStore(name);
+  // Strong consistency so signup → session cookie → /me works across isolates.
+  const s = getStore({ name, consistency: "strong" });
   return {
     backend: "netlify",
     async get(key, opts = {}) {
-      return s.get(key, { type: opts.type || "json" });
+      return s.get(key, { type: opts.type || "json", consistency: "strong" });
     },
     async setJSON(key, value) {
       await s.setJSON(key, value);
@@ -103,8 +116,8 @@ function netlifyStore(name) {
 }
 
 /**
- * Prefer Netlify Blobs after connectLambda(event). Fall back to files only
- * when Blobs cannot initialize (local smoke without Netlify context).
+ * Prefer Netlify Blobs. Fall back to files only when Blobs cannot initialize
+ * (local smoke without Netlify context).
  */
 export function store(name) {
   try {
@@ -116,10 +129,15 @@ export function store(name) {
 
 export function storageBackend() {
   try {
-    getStore("_probe");
+    getStore({ name: "_probe", consistency: "strong" });
     return "netlify";
-  } catch {
-    return "local-file-fallback";
+  } catch (err) {
+    try {
+      getStore("_probe");
+      return "netlify";
+    } catch {
+      return "local-file-fallback";
+    }
   }
 }
 

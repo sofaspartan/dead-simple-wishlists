@@ -224,9 +224,27 @@ export async function handler(event) {
     }
 
     if (parts[0] === "health" && method === "GET") {
+      const blobs = storageBackend();
+      let roundtrip = null;
+      if (blobs === "netlify") {
+        try {
+          const { wishlistsStore } = await import("./lib/store.mjs");
+          const probe = wishlistsStore();
+          const key = `__health_${Date.now()}`;
+          await probe.setJSON(key, { t: 1 });
+          const got = await probe.get(key);
+          await probe.delete(key);
+          roundtrip = got?.t === 1 ? "ok" : "mismatch";
+        } catch (err) {
+          roundtrip = err instanceof Error ? err.message : "error";
+        }
+      }
       return json(200, {
         ok: true,
-        blobs: storageBackend(),
+        blobs,
+        roundtrip,
+        hasBlobsEnv: Boolean(process.env.NETLIFY_BLOBS_CONTEXT),
+        hasEventBlobs: Boolean(event.blobs),
       });
     }
 
