@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import Screen from "../components/Screen";
+import { FormSkeleton } from "../components/Skeleton";
 
 export default function ListEdit() {
   const { id = "" } = useParams();
@@ -54,7 +55,7 @@ export default function ListEdit() {
         backLabel="Wishlist"
         largeTitle={false}
       >
-        <p className="muted">Loading…</p>
+        <FormSkeleton count={2} label="Loading wishlist" />
       </Screen>
     );
   }

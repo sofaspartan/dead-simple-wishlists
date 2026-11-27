@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, type Wishlist } from "../api";
 import Screen from "../components/Screen";
+import { FormSkeleton } from "../components/Skeleton";
 
 const empty = { name: "", url: "", notes: "", price: "" };
 const NEW_WISHLIST = "__new__";
@@ -120,7 +121,7 @@ export default function ItemForm() {
   if (loading) {
     return (
       <Screen title={title} backTo={backTo} backLabel="Back" largeTitle={false}>
-        <p className="muted">Loading…</p>
+        <FormSkeleton count={isNew ? 4 : 3} label="Loading wish" />
       </Screen>
     );
   }

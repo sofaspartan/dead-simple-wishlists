@@ -1,3 +1,4 @@
+import { Gift, ListPlus } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -6,6 +7,13 @@ type Props = {
   onClose: () => void;
   /** When set, “Add wish” pre-selects this wishlist. */
   listId?: string;
+};
+
+const iconProps = {
+  size: 22,
+  strokeWidth: 1.75,
+  fill: "currentColor",
+  "aria-hidden": true as const,
 };
 
 export default function AddSheet({ open, onClose, listId }: Props) {
@@ -56,9 +64,15 @@ export default function AddSheet({ open, onClose, listId }: Props) {
         </h2>
         <div className="add-sheet-actions">
           <button type="button" className="add-sheet-action" onClick={() => go(addWishPath)}>
+            <span className="add-sheet-action-icon">
+              <Gift {...iconProps} />
+            </span>
             Add wish
           </button>
           <button type="button" className="add-sheet-action" onClick={() => go("/app/new")}>
+            <span className="add-sheet-action-icon">
+              <ListPlus {...iconProps} />
+            </span>
             Add wishlist
           </button>
         </div>

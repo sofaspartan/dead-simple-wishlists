@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api, type Wishlist } from "../api";
 import MediaCard from "../components/MediaCard";
 import Screen from "../components/Screen";
+import { CardGridSkeleton } from "../components/Skeleton";
 import { getFavoriteIds, toggleFavorite } from "../lib/favorites";
 
 export default function Favorites() {
@@ -44,7 +45,7 @@ export default function Favorites() {
     <Screen title="Favorites" tabs largeTitle>
       {error && <p className="error">{error}</p>}
       {loading ? (
-        <p className="muted">Loading…</p>
+        <CardGridSkeleton label="Loading favorites" />
       ) : favorites.length === 0 ? (
         <div className="empty-state">
           <span className="empty-icon" aria-hidden="true">
